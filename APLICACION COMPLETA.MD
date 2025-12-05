@@ -65,7 +65,7 @@
 
 ---
 
-### **📅 SEMANA 3: Calendario Usuario (15-21 Dic)** 🔄 EN PROGRESO
+### **📅 SEMANA 3: Calendario Usuario (15-21 Dic)** ✅ COMPLETADA (90%)
 **Entregables:**
 - ✅ **Vista Calendario Usuario**:
   - ✅ Vista personalizada (CalendarioCustom)
@@ -76,26 +76,33 @@
 - ✅ **Integración con Rutinas**:
   - ✅ Desde "Detalle de Rutina" → "Programar en Calendario"
   - ✅ MiniCalendario de selección de fecha
-- ⚠️ **Estados visuales**:
+  - ✅ Marcar completada desde Rutinas → aparece en calendario
+- ✅ **Estados visuales**:
   - ✅ Pendiente (color normal)
   - ✅ Completado (✅ verde con opacidad)
   - ❌ Vencido/no completado (🔴 rojo) - pendiente
-- ❌ **Contador de racha**: Días consecutivos entrenando (no implementado)
+- ✅ **Contador de racha**: Días consecutivos entrenando con badge especial 7+ días
+- ✅ **Sistema unificado**: ScheduleContext maneja todo (progreso + calendario)
+- ✅ **Card "Rutina de Hoy"**: Muestra próximo entrenamiento pendiente funcional
+- ✅ **Stats de semana**: Contador lunes a domingo automático
 
-**Checkpoint:** ✅ Usuario puede programar y gestionar workouts en calendario
-**Pendiente:** Drag & Drop, estados vencidos, contador de racha
+**Checkpoint:** ✅ Sistema completo de calendario y progreso funcionando
+**Pendiente:** Drag & Drop, estados vencidos (opcionales)
 
 ---
 
-### **📅 SEMANA 4: Progreso + Gamificación (22-28 Dic)** ⏳ PENDIENTE
+### **📅 SEMANA 4: Progreso + Gamificación (22-28 Dic)** ⏳ EN PROGRESO
 **Entregables:**
-- ❌ **Performance Metrics**: 3 indicadores (Fatigue/Fitness/Form)
-- ❌ **Gráficos de progreso** (Recharts):
-  - Entrenamientos por semana (línea)
-  - Calorías quemadas (barras)
-  - Minutos activos (área)
-  - Adherencia mensual (calendario de calor)
-- ⚠️ **Contador de entrenamientos**: Parcial (solo completados locales)
+- ✅ **Gráficos de progreso** (Recharts) - Implementados en `Progreso.jsx`:
+  - ✅ Entrenamientos últimos 7 días (gráfico de barras)
+  - ✅ Minutos por semana - últimas 4 semanas (gráfico de área)
+  - ✅ Calorías por semana - últimas 4 semanas (gráfico de línea)
+  - ✅ Distribución por categoría (lista visual con colores)
+  - ✅ Stats Cards: Esta Semana, Racha, Minutos Totales, Calorías Quemadas
+  - ✅ Total completados con diseño destacado
+  - ❌ Adherencia mensual (calendario de calor) - pendiente
+- ✅ **Contador de entrenamientos**: Funcional (completados locales desde ScheduleContext)
+- ❌ **Performance Metrics**: 3 indicadores (Fatigue/Fitness/Form) - pendiente
 - ❌ **Sistema de Medallas**:
   - Primera rutina completada
   - 5 entrenamientos
@@ -103,10 +110,10 @@
   - Racha 7 días
   - Racha 30 días
   - 100% adherencia semanal
-- ❌ **Perfil Usuario**: Stats generales + configuración + tema
+- ❌ **Perfil Usuario**: Stats generales + configuración + tema - pendiente
 
-**Checkpoint:** ❌ Usuario ve su progreso con gráficos y gana medallas
-**Estado:** No iniciado - requiere instalación de Recharts
+**Checkpoint:** ✅ Usuario ve su progreso con gráficos y estadísticas reales
+**Pendiente:** Performance Metrics, Sistema de Medallas, Adherencia mensual, Perfil Usuario
 
 ---
 

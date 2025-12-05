@@ -185,10 +185,13 @@ export default function Calendario() {
             ) : (
               <div className="space-y-4">
                 {selectedWorkouts.map((workout) => (
-                  <Card 
-                    key={workout.id} 
-                    className="cursor-pointer hover:border-pulso-rojo/50" 
-                    onClick={() => setSelectedWorkout(workout)}
+                  <div
+                    key={workout.id}
+                    onClick={() => {
+                      console.log('Click en workout:', workout.workoutName);
+                      setSelectedWorkout(workout);
+                    }}
+                    className="bg-pulso-negro border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-pulso-rojo/50 transition-all"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
@@ -206,7 +209,7 @@ export default function Calendario() {
                     }`}>
                       {workout.status === 'completed' ? '✅ Completado' : '⏳ Pendiente'}
                     </div>
-                  </Card>
+                  </div>
                 ))}
                 
                 {/* Botón para agregar más */}

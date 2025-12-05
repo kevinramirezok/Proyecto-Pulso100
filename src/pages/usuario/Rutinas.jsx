@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useProgress } from '../../context/ProgressContext';
 import { useSchedule } from '../../context/ScheduleContext';
 import { WORKOUTS, CATEGORIES } from '../../data/mockWorkouts';
 import Card from '../../components/ui/Card';
@@ -13,8 +12,7 @@ export default function Rutinas() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorkout, setSelectedWorkout] = useState(null);
-  const { completeWorkout, isWorkoutCompleted } = useProgress();
-  const { scheduleWorkout } = useSchedule();
+  const { scheduleWorkout, completeWorkoutToday, isWorkoutCompleted } = useSchedule();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateForSchedule, setSelectedDateForSchedule] = useState('');
 
@@ -188,7 +186,7 @@ export default function Rutinas() {
                         size="lg"
                         className="w-full"
                         onClick={() => {
-                          completeWorkout(selectedWorkout.id);
+                          completeWorkoutToday(selectedWorkout);
                           alert('¡Rutina completada! 🎉');
                         }}
                       >
