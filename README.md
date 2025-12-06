@@ -10,6 +10,9 @@ Plataforma web para gestión de entrenamiento fitness con sistema de roles (Usua
 - **TailwindCSS** (v3.4.1) para estilos
 - **React Router** para navegación
 - **Lucide React** para iconos
+- **Context API** (autenticación, progreso, calendario)
+- **LocalStorage** para persistencia de datos
+- **Recharts** para gráficos de progreso
 
 ## 📁 Estructura del Proyecto
 
@@ -31,22 +34,37 @@ pulso100-v2/
 │   │   │   ├── Button.jsx
 │   │   │   ├── Input.jsx
 │   │   │   ├── Card.jsx
-│   │   │   └── Badge.jsx
+│   │   │   ├── Badge.jsx
+│   │   │   ├── Modal.jsx
+│   │   │   └── MiniCalendario.jsx
 │   │   ├── features/           # Componentes específicos
+│   │   │   └── MedalCard.jsx
 │   │   └── calendar/           # Componentes de calendario
+│   │        └── CalendarioCustom.jsx
 │   ├── pages/
 │   │   ├── auth/
 │   │   │   └── Login.jsx
 │   │   ├── usuario/
-│   │   │   └── Home.jsx
+│   │   │   ├── Home.jsx
+│   │   │   ├── Rutinas.jsx
+│   │   │   ├── Calendario.jsx
+│   │   │   └── Progreso.jsx
 │   │   ├── entrenadora/
 │   │   │   └── Dashboard.jsx
 │   │   └── admin/
 │   │       └── Dashboard.jsx
 │   ├── context/                # Context API
+│   │   ├── AuthContext.jsx
+│   │   ├── ScheduleContext.jsx
+│   │   └── ThemeContext.jsx
 │   ├── hooks/                  # Custom hooks
 │   ├── utils/                  # Utilidades
 │   ├── data/                   # Datos mock/estáticos
+│   │   ├── mockUsers.js
+│   │   ├── mockWorkouts.js
+│   │   ├── mockProgress.js
+│   │   ├── mockScheduled.js
+│   │   └── medals.js
 │   ├── App.jsx
 │   └── main.jsx
 └── tailwind.config.js
@@ -96,12 +114,61 @@ export default {
 }
 ```
 
+## 🗓️ Sistema de Calendario
+
+El proyecto incluye un sistema completo de calendario personalizado:
+
+- **CalendarioCustom**: Componente principal que muestra los entrenamientos programados
+- **MiniCalendario**: Selector visual de fecha para programación de rutinas
+- **ScheduleContext**: Gestión de estado para entrenamientos programados con persistencia en localStorage
+
+### Funcionalidades del Calendario
+
+- ✅ Visualización de entrenamientos programados por día
+- ✅ Selección visual de fechas con `MiniCalendario`
+- ✅ Programación de rutinas desde la página de Rutinas
+- ✅ Marcado de entrenamientos como completados
+- ✅ Eliminación de entrenamientos programados
+- ✅ Persistencia de datos en localStorage
+- ✅ Categorización visual por tipo de entrenamiento (colores distintivos)
+
+## 📱 Características Principales
+
+### Gestión de Rutinas
+- Catálogo completo de entrenamientos con filtros por categoría
+- Sistema de búsqueda en tiempo real
+- Detalles completos de ejercicios, duración y calorías
+- Programación visual de rutinas con calendario
+
+### Seguimiento de Progreso y Gamificación
+- Marcado de rutinas completadas
+- Historial de entrenamientos
+- Visualización de gráficos de progreso (Recharts)
+- Sistema de medallas/logros: desbloquea medallas por hitos de entrenamiento, rachas, calorías, minutos y variedad de categorías
+- Persistencia de datos local
+
+### Sistema de Roles
+- **Usuario**: Acceso a rutinas, calendario y progreso personal
+- **Entrenadora**: Dashboard con gestión de usuarios y rutinas
+- **Admin**: Panel de administración completa
+
 ## 📝 Notas de Desarrollo
 
 - Utiliza **React Router** para la navegación entre roles
 - Sistema de autenticación con **Context API**
 - Componentes UI reutilizables con TailwindCSS
 - Diseño mobile-first con navegación inferior
+- **ScheduleProvider** envuelve toda la aplicación para gestión de calendario
+- Persistencia de datos con **localStorage**
+
+## 🎯 Próximas Funcionalidades
+
+- Sistema de notificaciones para entrenamientos programados
+- Gráficos de progreso y estadísticas
+- Creación de rutinas personalizadas
+- Sistema de metas y objetivos
+- Integración con APIs externas de fitness
+- Performance Metrics y medallas avanzadas
 
 ---
 

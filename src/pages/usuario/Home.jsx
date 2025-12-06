@@ -1,13 +1,30 @@
 import { useAuth } from '../../context/AuthContext';
-import { useProgress } from '../../context/ProgressContext';
+import { useSchedule } from '../../context/ScheduleContext';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { Flame, Clock, Target, TrendingUp } from 'lucide-react';
+import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar } from 'lucide-react';
 
 export default function Home() {
   const { user, logout } = useAuth();
-  const { getTotalCompleted, getWeekCompleted } = useProgress();
+  const { scheduledWorkouts, completeScheduledWorkout, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
+  const navigate = useNavigate();
+
+  // Obtener entrenamientos de hoy pendientes
+  const hoy = new Date();
+  const entrenamientosHoy = scheduledWorkouts.filter(w => {
+    const fechaWorkout = new Date(w.scheduledDate);
+    return fechaWorkout.toDateString() === hoy.toDateString() && w.status === 'pending';
+  });
+  const proximoEntrenamiento = entrenamientosHoy[0];
+
+  // Formatear fecha de hoy
+  const fechaHoyFormateada = hoy.toLocaleDateString('es-ES', { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long' 
+  });
 
   return (
     <div className="min-h-screen relative">
@@ -60,34 +77,81 @@ export default function Home() {
           </Card>
         </div>
 
+        {/* Racha */}
+        <Card className="backdrop-blur-sm bg-pulso-negroSec/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-orange-500/10 p-3 rounded-lg">
+                <span className="text-3xl">🔥</span>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Racha Actual</p>
+                 <p className="text-white text-2xl font-bold">{getStreak()} {getStreak() === 1 ? 'día' : 'días'}</p>
+              </div>
+            </div>
+            {getStreak() >= 7 && (
+              <div className="bg-orange-500/20 px-3 py-1 rounded-full">
+                <span className="text-orange-500 text-sm font-bold">🏆 ¡Increíble!</span>
+              </div>
+            )}
+          </div>
+          {getStreak() === 0 && (
+            <p className="text-gray-500 text-sm mt-3">¡Completá un entrenamiento hoy para iniciar tu racha!</p>
+          )}
+        </Card>
+
         {/* Rutina del día */}
         <Card className="backdrop-blur-sm bg-pulso-negroSec/80">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-white font-bold text-lg">Rutina de Hoy</h3>
-              <p className="text-gray-400 text-sm">Lunes, 2 Diciembre</p>
-            </div>
-            <Badge variant="fuerza">Fuerza</Badge>
-          </div>
-          
-          <div className="space-y-3 mb-4">
-            <div className="flex items-center gap-3 text-gray-400 text-sm">
-              <Target size={16} />
-              <span>Full Body Workout</span>
-            </div>
-            <div className="flex items-center gap-3 text-gray-400 text-sm">
-              <Clock size={16} />
-              <span>45 minutos</span>
-            </div>
-            <div className="flex items-center gap-3 text-gray-400 text-sm">
-              <Flame size={16} />
-              <span>450 kcal</span>
-            </div>
-          </div>
+          {proximoEntrenamiento ? (
+            <>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-white font-bold text-lg">Rutina de Hoy</h3>
+                  <p className="text-gray-400 text-sm capitalize">{fechaHoyFormateada}</p>
+                </div>
+                <Badge variant={proximoEntrenamiento.workoutCategory}>
+                  {proximoEntrenamiento.workoutCategory}
+                </Badge>
+              </div>
+              
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  <Target size={16} />
+                  <span>{proximoEntrenamiento.workoutName}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  <Clock size={16} />
+                  <span>{proximoEntrenamiento.workoutDuration} minutos</span>
+                </div>
+              </div>
 
-          <Button className="w-full" size="lg">
-            Comenzar Entrenamiento
-          </Button>
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => {
+                  completeScheduledWorkout(proximoEntrenamiento.id);
+                  alert('¡Entrenamiento completado! 🎉');
+                }}
+              >
+                <CheckCircle size={20} className="mr-2" />
+                Marcar como Completada
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="text-center py-6">
+                <Calendar size={48} className="mx-auto text-gray-600 mb-4" />
+                <h3 className="text-white font-bold text-lg mb-2">Sin entrenamientos hoy</h3>
+                <p className="text-gray-400 text-sm mb-4">¡Programá una rutina para hoy!</p>
+                <Button 
+                  variant="primary" 
+                  onClick={() => navigate('/usuario/rutinas')}
+                >
+                  Ver Rutinas
+                </Button>
+              </div>
+            </>
+          )}
         </Card>
 
         {/* Progreso Semanal */}
