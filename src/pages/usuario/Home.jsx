@@ -86,7 +86,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-gray-400 text-xs">Racha Actual</p>
-                <p className="text-white text-2xl font-bold">{getStreak()} días</p>
+                 <p className="text-white text-2xl font-bold">{getStreak()} {getStreak() === 1 ? 'día' : 'días'}</p>
               </div>
             </div>
             {getStreak() >= 7 && (

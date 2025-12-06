@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import MiniCalendario from '../../components/ui/MiniCalendario';
 import { Clock, Flame, TrendingUp, Search, Play, Calendar, CheckCircle } from 'lucide-react';
+import EntrenamientoActivo from '../../components/features/EntrenamientoActivo';
 
 export default function Rutinas() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -15,6 +16,7 @@ export default function Rutinas() {
   const { scheduleWorkout, completeWorkoutToday, isWorkoutCompleted } = useSchedule();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateForSchedule, setSelectedDateForSchedule] = useState('');
+  const [entrenamientoActivo, setEntrenamientoActivo] = useState(null);
 
   const filteredWorkouts = WORKOUTS.filter(workout => {
     const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
@@ -203,7 +205,15 @@ export default function Rutinas() {
                           <Calendar size={18} className="mr-1" />
                           <span className="text-sm">Programar</span>
                         </Button>
-                        <Button variant="outline" size="md" className="w-full flex items-center justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="md" 
+                          className="w-full flex items-center justify-center"
+                          onClick={() => {
+                            setSelectedWorkout(null);
+                            setEntrenamientoActivo(selectedWorkout);
+                          }}
+                        >
                           <Play size={18} className="mr-1" />
                           <span className="text-sm">Iniciar</span>
                         </Button>
@@ -261,6 +271,24 @@ export default function Rutinas() {
           </div>
         )}
       </Modal>
+
+      {/* Entrenamiento Activo */}
+      {entrenamientoActivo && (
+        <EntrenamientoActivo
+          workout={entrenamientoActivo}
+          onCancel={() => setEntrenamientoActivo(null)}
+          onComplete={(segundos) => {
+            const minutos = Math.round(segundos / 60);
+            completeWorkoutToday({
+              ...entrenamientoActivo,
+              duration: minutos > 0 ? minutos : entrenamientoActivo.duration
+            });
+            setEntrenamientoActivo(null);
+            alert(`¡Entrenamiento completado en ${Math.floor(segundos / 60)}:${(segundos % 60).toString().padStart(2, '0')}! 🎉`);
+          }}
+        />
+      )
+      }
     </div>
   );
 }

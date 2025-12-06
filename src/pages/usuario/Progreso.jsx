@@ -6,6 +6,8 @@ import {
   LineChart, Line, AreaChart, Area
 } from 'recharts';
 import { TrendingUp, Flame, Clock, Target, Award } from 'lucide-react';
+import { MEDALS } from '../../data/medals';
+import MedalCard from '../../components/features/MedalCard';
 
 export default function Progreso() {
   const { scheduledWorkouts, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
@@ -106,6 +108,24 @@ export default function Progreso() {
     }));
   }, [completados]);
 
+  // Calcular stats para medallas
+  const statsParaMedallas = useMemo(() => {
+    const categorias = new Set(completados.map(w => w.workoutCategory));
+    return {
+      totalCompleted: completados.length,
+      streak: getStreak(),
+      weekCompleted: getWeekCompleted(),
+      totalCalories: stats.totalCalorias,
+      totalMinutes: stats.totalMinutos,
+      categoriesUsed: categorias.size,
+    };
+  }, [completados, getStreak, getWeekCompleted, stats]);
+
+  // Obtener medallas desbloqueadas
+  const medallasDesbloqueadas = useMemo(() => {
+    return MEDALS.filter(medal => medal.condition(statsParaMedallas));
+  }, [statsParaMedallas]);
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -148,7 +168,7 @@ export default function Progreso() {
           </div>
           <div>
             <p className="text-gray-400 text-xs">Racha</p>
-            <p className="text-white text-2xl font-bold">{getStreak()} días</p>
+              <p className="text-white text-2xl font-bold">{getStreak()} {getStreak() === 1 ? 'día' : 'días'}</p>
           </div>
         </Card>
 
@@ -289,6 +309,25 @@ export default function Progreso() {
           </div>
         </Card>
       )}
+
+      {/* Medallas */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-bold text-lg">Medallas</h3>
+          <span className="text-gray-400 text-sm">
+            {medallasDesbloqueadas.length}/{MEDALS.length}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-3">
+          {MEDALS.map(medal => (
+            <MedalCard
+              key={medal.id}
+              medal={medal}
+              unlocked={medallasDesbloqueadas.some(m => m.id === medal.id)}
+            />
+          ))}
+        </div>
+      </Card>
 
       {/* Resumen */}
       <Card className="bg-gradient-to-r from-pulso-rojo/20 to-transparent border-pulso-rojo/30">

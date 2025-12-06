@@ -56,12 +56,12 @@
   - ✅ Lista de ejercicios paso a paso
   - ⚠️ Video tutorial (estructura preparada, sin URLs reales)
   - ✅ Botón "Programar en Calendario" (con MiniCalendario)
-  - ⚠️ Botón "Iniciar Entrenamiento" (UI presente, funcionalidad pendiente)
+  - ✅ Botón "Iniciar Entrenamiento" (pantalla completa con timer y ejercicios)
 - ✅ **Marcar como completada**
 - ✅ Datos mock de rutinas (mockWorkouts.js)
 
-**Checkpoint:** ✅ Usuario puede buscar, ver y programar rutinas
-**Pendiente:** Funcionalidad completa de "Iniciar Entrenamiento"
+**Checkpoint:** ✅ Usuario puede buscar, ver y programar rutinas, iniciar entrenamientos y registrar progreso
+**Pendiente:** Mejoras en video y feedback visual
 
 ---
 
@@ -69,10 +69,9 @@
 **Entregables:**
 - ✅ **Vista Calendario Usuario**:
   - ✅ Vista personalizada (CalendarioCustom)
-  - ✅ Workouts visualizados con colores por categoría
+  - ✅ Workouts visualizados with colores por categoría
   - ✅ Click en día → agregar workout (con MiniCalendario)
   - ✅ Click en workout → ver detalle / marcar completado
-  - ❌ Drag & Drop de workouts entre días (no implementado)
 - ✅ **Integración con Rutinas**:
   - ✅ Desde "Detalle de Rutina" → "Programar en Calendario"
   - ✅ MiniCalendario de selección de fecha
@@ -80,7 +79,6 @@
 - ✅ **Estados visuales**:
   - ✅ Pendiente (color normal)
   - ✅ Completado (✅ verde con opacidad)
-  - ❌ Vencido/no completado (🔴 rojo) - pendiente
 - ✅ **Contador de racha**: Días consecutivos entrenando con badge especial 7+ días
 - ✅ **Sistema unificado**: ScheduleContext maneja todo (progreso + calendario)
 - ✅ **Card "Rutina de Hoy"**: Muestra próximo entrenamiento pendiente funcional
@@ -102,18 +100,14 @@
   - ✅ Total completados con diseño destacado
   - ❌ Adherencia mensual (calendario de calor) - pendiente
 - ✅ **Contador de entrenamientos**: Funcional (completados locales desde ScheduleContext)
+- ✅ **Funcionalidad Iniciar Entrenamiento**: Timer, ejercicios, calorías estimadas y registro automático
+- ❗️ **Sistema de Medallas**: 
+  - ✅ Visualización y lógica de medallas/logros en Progreso.jsx
 - ❌ **Performance Metrics**: 3 indicadores (Fatigue/Fitness/Form) - pendiente
-- ❌ **Sistema de Medallas**:
-  - Primera rutina completada
-  - 5 entrenamientos
-  - 10 entrenamientos
-  - Racha 7 días
-  - Racha 30 días
-  - 100% adherencia semanal
 - ❌ **Perfil Usuario**: Stats generales + configuración + tema - pendiente
 
-**Checkpoint:** ✅ Usuario ve su progreso con gráficos y estadísticas reales
-**Pendiente:** Performance Metrics, Sistema de Medallas, Adherencia mensual, Perfil Usuario
+**Checkpoint:** ✅ Usuario ve su progreso con gráficos, estadísticas, medallas y puede iniciar entrenamientos
+**Pendiente:** Performance Metrics, Adherencia mensual, Perfil Usuario
 
 ---
 
@@ -271,3 +265,4 @@ pulso100-v2/
 ├── vite.config.js
 ├── package.json
 └── README.md
+```

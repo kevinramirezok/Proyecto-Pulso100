@@ -12,6 +12,7 @@ Plataforma web para gestión de entrenamiento fitness con sistema de roles (Usua
 - **Lucide React** para iconos
 - **Context API** (autenticación, progreso, calendario)
 - **LocalStorage** para persistencia de datos
+- **Recharts** para gráficos de progreso
 
 ## 📁 Estructura del Proyecto
 
@@ -37,6 +38,7 @@ pulso100-v2/
 │   │   │   ├── Modal.jsx
 │   │   │   └── MiniCalendario.jsx
 │   │   ├── features/           # Componentes específicos
+│   │   │   └── MedalCard.jsx
 │   │   └── calendar/           # Componentes de calendario
 │   │        └── CalendarioCustom.jsx
 │   ├── pages/
@@ -45,20 +47,24 @@ pulso100-v2/
 │   │   ├── usuario/
 │   │   │   ├── Home.jsx
 │   │   │   ├── Rutinas.jsx
-│   │   │   └── Calendario.jsx
+│   │   │   ├── Calendario.jsx
+│   │   │   └── Progreso.jsx
 │   │   ├── entrenadora/
 │   │   │   └── Dashboard.jsx
 │   │   └── admin/
 │   │       └── Dashboard.jsx
 │   ├── context/                # Context API
 │   │   ├── AuthContext.jsx
-│   │   ├── ProgressContext.jsx
 │   │   ├── ScheduleContext.jsx
 │   │   └── ThemeContext.jsx
 │   ├── hooks/                  # Custom hooks
 │   ├── utils/                  # Utilidades
 │   ├── data/                   # Datos mock/estáticos
-│   │   └── mockWorkouts.js
+│   │   ├── mockUsers.js
+│   │   ├── mockWorkouts.js
+│   │   ├── mockProgress.js
+│   │   ├── mockScheduled.js
+│   │   └── medals.js
 │   ├── App.jsx
 │   └── main.jsx
 └── tailwind.config.js
@@ -134,9 +140,11 @@ El proyecto incluye un sistema completo de calendario personalizado:
 - Detalles completos de ejercicios, duración y calorías
 - Programación visual de rutinas con calendario
 
-### Seguimiento de Progreso
+### Seguimiento de Progreso y Gamificación
 - Marcado de rutinas completadas
 - Historial de entrenamientos
+- Visualización de gráficos de progreso (Recharts)
+- Sistema de medallas/logros: desbloquea medallas por hitos de entrenamiento, rachas, calorías, minutos y variedad de categorías
 - Persistencia de datos local
 
 ### Sistema de Roles
@@ -151,7 +159,6 @@ El proyecto incluye un sistema completo de calendario personalizado:
 - Componentes UI reutilizables con TailwindCSS
 - Diseño mobile-first con navegación inferior
 - **ScheduleProvider** envuelve toda la aplicación para gestión de calendario
-- **ProgressContext** para seguimiento de entrenamientos completados
 - Persistencia de datos con **localStorage**
 
 ## 🎯 Próximas Funcionalidades
@@ -161,6 +168,7 @@ El proyecto incluye un sistema completo de calendario personalizado:
 - Creación de rutinas personalizadas
 - Sistema de metas y objetivos
 - Integración con APIs externas de fitness
+- Performance Metrics y medallas avanzadas
 
 ---
 

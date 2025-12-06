@@ -11,6 +11,7 @@ import DashboardEntrenadora from './pages/entrenadora/Dashboard';
 import DashboardAdmin from './pages/admin/Dashboard';
 import Calendario from './pages/usuario/Calendario';
 import Progreso from './pages/usuario/Progreso';
+import Perfil from './pages/usuario/Perfil';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -32,7 +33,7 @@ function App() {
                   <Route path="calendario" element={<Calendario />} />
                   <Route path="rutinas" element={<Rutinas />} />
                   <Route path="progreso" element={<Progreso />} />
-                  <Route path="perfil" element={<div className="text-white">Perfil (próximamente)</div>} />
+                  <Route path="perfil" element={<Perfil />} />
                 </Routes>
               </LayoutUsuario>
             </ProtectedRoute>
