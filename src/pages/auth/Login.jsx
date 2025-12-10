@@ -42,7 +42,7 @@ export default function Login() {
       {/* Logo */}
       <div className="mb-8 text-center">
         <img 
-          src="/logo-completo-sinbackground.png" 
+          src="/logo.png" 
           alt="Pulso 100" 
           className="w-80 max-w-full mx-auto mb-4"
         />
