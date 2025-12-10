@@ -7,8 +7,7 @@ import Button from '../../components/ui/Button';
 
 const ROLES = [
   { key: 'usuario', label: 'Usuario', icon: User },
-  { key: 'entrenadora', label: 'Entrenadora', icon: Users },
-  { key: 'admin', label: 'Admin', icon: Shield },
+  { key: 'admin', label: 'Administrador', icon: Shield },
 ];
 
 export default function Login() {
@@ -35,7 +34,6 @@ export default function Login() {
     setLoading(false);
     
     if (role === 'usuario') navigate('/usuario/home');
-    else if (role === 'entrenadora') navigate('/entrenadora/dashboard');
     else navigate('/admin/dashboard');
   };
 
@@ -44,7 +42,7 @@ export default function Login() {
       {/* Logo */}
       <div className="mb-8 text-center">
         <img 
-          src="/logo-completo.jpg" 
+          src="/logo-completo-sinbackground.png" 
           alt="Pulso 100" 
           className="w-80 max-w-full mx-auto mb-4"
         />
@@ -91,7 +89,7 @@ export default function Login() {
             <label className="block mb-3 text-gray-400 font-medium text-sm">
               Seleccioná tu rol
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {ROLES.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}

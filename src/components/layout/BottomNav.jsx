@@ -9,17 +9,11 @@ const TABS = {
     { label: 'Progreso', icon: TrendingUp, to: '/usuario/progreso' },
     { label: 'Perfil', icon: User, to: '/usuario/perfil' },
   ],
-  entrenadora: [
-    { label: 'Dashboard', icon: Home, to: '/entrenadora/dashboard' },
-    { label: 'Calendario', icon: Calendar, to: '/entrenadora/calendario' },
-    { label: 'Usuarios', icon: Users, to: '/entrenadora/usuarios' },
-    { label: 'Crear', icon: PlusCircle, to: '/entrenadora/crear' },
-    { label: 'Perfil', icon: User, to: '/entrenadora/perfil' },
-  ],
   admin: [
     { label: 'Dashboard', icon: Home, to: '/admin/dashboard' },
     { label: 'Usuarios', icon: Users, to: '/admin/usuarios' },
-    { label: 'Entrenadores', icon: Dumbbell, to: '/admin/entrenadores' },
+    { label: 'Rutinas', icon: Dumbbell, to: '/admin/rutinas' },
+    { label: 'Calendario', icon: Calendar, to: '/admin/calendario' },
     { label: 'Config', icon: Settings, to: '/admin/config' },
   ],
 };

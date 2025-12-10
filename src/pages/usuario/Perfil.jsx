@@ -75,7 +75,7 @@ export default function Perfil() {
       </Card>
 
       {/* Estadísticas Resumen */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 xs:grid-cols-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
         <Card className="text-center">
           <Target className="mx-auto text-pulso-rojo mb-2" size={28} />
           <p className="text-2xl font-bold text-white">{getTotalCompleted()}</p>
@@ -99,6 +99,13 @@ export default function Perfil() {
           <p className="text-2xl font-bold text-white">{totalCalorias.toLocaleString()}</p>
           <p className="text-gray-400 text-xs">Calorías quemadas</p>
         </Card>
+        <style>{`
+          @media (max-width: 400px) {
+            .grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </div>
 
       {/* Medallas Destacadas */}
@@ -170,7 +177,7 @@ export default function Perfil() {
           {/* Categorías usadas */}
           <div>
             <p className="text-gray-400 text-sm mb-2">Categorías exploradas</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 gap-y-2">
               {['fuerza', 'running', 'bicicleta', 'natacion', 'otro'].map(cat => (
                 <div
                   key={cat}
