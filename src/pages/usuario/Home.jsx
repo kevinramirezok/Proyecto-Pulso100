@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar } from 'lucide-react';
+import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar, Play } from 'lucide-react';
+import { WORKOUTS } from '../../data/mockWorkouts';
+import { useEntrenamiento } from '../../context/EntrenamientoContext';
 
 export default function Home() {
   const { user, logout } = useAuth();
   const { scheduledWorkouts, completeScheduledWorkout, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
   const navigate = useNavigate();
+  const { iniciarEntrenamiento } = useEntrenamiento();
 
   // Obtener entrenamientos de hoy pendientes
   const hoy = new Date();
@@ -125,17 +128,45 @@ export default function Home() {
                 </div>
               </div>
 
-              <Button 
-                className="w-full" 
-                size="lg"
-                onClick={() => {
-                  completeScheduledWorkout(proximoEntrenamiento.id);
-                  alert('¡Entrenamiento completado! 🎉');
-                }}
-              >
-                <CheckCircle size={20} className="mr-2" />
-                Marcar como Completada
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={() => {
+                    const rutinaCompleta = WORKOUTS.find(w => w.name === proximoEntrenamiento.workoutName) || {
+                      ...proximoEntrenamiento,
+                      name: proximoEntrenamiento.workoutName,
+                      category: proximoEntrenamiento.workoutCategory,
+                      duration: proximoEntrenamiento.workoutDuration,
+                      exercises: []
+                    };
+                    iniciarEntrenamiento(rutinaCompleta, proximoEntrenamiento.id);
+                  }}
+                >
+                  <Play size={20} className="mr-2" />
+                  Iniciar Entrenamiento
+                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="secondary"
+                    size="md"
+                    onClick={() => {
+                      completeScheduledWorkout(proximoEntrenamiento.id);
+                      alert('¡Entrenamiento completado! 🎉');
+                    }}
+                  >
+                    <CheckCircle size={18} className="mr-1" />
+                    Completar
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    size="md"
+                    onClick={() => navigate('/usuario/rutinas')}
+                  >
+                    Ver Rutinas
+                  </Button>
+                </div>
+              </div>
             </>
           ) : (
             <>

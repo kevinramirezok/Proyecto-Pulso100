@@ -151,7 +151,7 @@ export default function Progreso() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
         <Card className="flex items-center gap-3">
           <div className="bg-pulso-rojo/10 p-3 rounded-lg">
             <Target className="text-pulso-rojo" size={24} />
@@ -191,6 +191,13 @@ export default function Progreso() {
             <p className="text-white text-2xl font-bold">{stats.totalCalorias}</p>
           </div>
         </Card>
+        <style>{`
+          @media (max-width: 400px) {
+            .grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </div>
 
       {/* Gráfico: Entrenamientos últimos 7 días */}

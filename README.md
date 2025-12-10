@@ -1,175 +1,141 @@
-# PULSO 100 🏃‍♂️
-
+# PULSO 100 🏃‍♂️💪
 **Tu límite es el siguiente pulso**
 
-Plataforma web para gestión de entrenamiento fitness con sistema de roles (Usuario, Entrenadora, Admin).
+Plataforma de entrenamiento personalizado que conecta usuarios con su entrenador/a personal de forma virtual.
 
-## 🚀 Tecnologías
+---
 
-- **React 18** + **Vite**
-- **TailwindCSS** (v3.4.1) para estilos
-- **React Router** para navegación
-- **Lucide React** para iconos
-- **Context API** (autenticación, progreso, calendario)
-- **LocalStorage** para persistencia de datos
-- **Recharts** para gráficos de progreso
+## 🚀 Demo
+[Ver Demo en Vivo](URL_DE_VERCEL_AQUÍ)
 
-## 📁 Estructura del Proyecto
+---
 
-```
-pulso100-v2/
-├── public/
-│   ├── logo-completo.jpg      # Logo principal
-│   ├── logo-simple.jpg         # Logo simplificado
-│   ├── logo-runner.jpg         # Logo con corredor
-│   └── logo-circular.jpg       # Logo circular
-├── src/
-│   ├── components/
-│   │   ├── layout/             # Layouts por rol
-│   │   │   ├── BottomNav.jsx
-│   │   │   ├── LayoutUsuario.jsx
-│   │   │   ├── LayoutEntrenadora.jsx
-│   │   │   └── LayoutAdmin.jsx
-│   │   ├── ui/                 # Componentes reutilizables
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Badge.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   └── MiniCalendario.jsx
-│   │   ├── features/           # Componentes específicos
-│   │   │   └── MedalCard.jsx
-│   │   └── calendar/           # Componentes de calendario
-│   │        └── CalendarioCustom.jsx
-│   ├── pages/
-│   │   ├── auth/
-│   │   │   └── Login.jsx
-│   │   ├── usuario/
-│   │   │   ├── Home.jsx
-│   │   │   ├── Rutinas.jsx
-│   │   │   ├── Calendario.jsx
-│   │   │   └── Progreso.jsx
-│   │   ├── entrenadora/
-│   │   │   └── Dashboard.jsx
-│   │   └── admin/
-│   │       └── Dashboard.jsx
-│   ├── context/                # Context API
-│   │   ├── AuthContext.jsx
-│   │   ├── ScheduleContext.jsx
-│   │   └── ThemeContext.jsx
-│   ├── hooks/                  # Custom hooks
-│   ├── utils/                  # Utilidades
-│   ├── data/                   # Datos mock/estáticos
-│   │   ├── mockUsers.js
-│   │   ├── mockWorkouts.js
-│   │   ├── mockProgress.js
-│   │   ├── mockScheduled.js
-│   │   └── medals.js
-│   ├── App.jsx
-│   └── main.jsx
-└── tailwind.config.js
-```
+## 📱 Características para Usuarios
+- Calendario interactivo para programar entrenamientos
+- Biblioteca de rutinas con filtros por categoría
+- Seguimiento de progreso con gráficos
+- Timer de entrenamiento y lista de ejercicios
+- Sistema de racha (días consecutivos)
+- Medallas y logros desbloqueables
+- Perfil con estadísticas personales
 
-## 🎨 Paleta de Colores
+### Categorías de Entrenamiento
+- 🚴 Bicicleta
+- 🏃 Running
+- 💪 Fuerza
+- 🏊 Natación
+- 🧘 Otros
 
-```js
-colors: {
-  'pulso-rojo': '#FF0000',
-  'pulso-negro': '#0a0a0a',
-  'pulso-negroSec': '#1a1a1a',
-}
-```
+---
 
-## 📦 Instalación
+## 🛠️ Tecnologías
+- **Frontend:** React 18 + Vite
+- **Estilos:** Tailwind CSS (v3.4.1)
+- **Gráficos:** Recharts
+- **Iconos:** Lucide React
+- **Routing:** React Router DOM v6
+- **Estado:** Context API
+- **Persistencia:** LocalStorage
+
+---
+
+## 📦 Instalación y Uso para Desarrolladores
 
 ```bash
+# Clonar repositorio
+
 # Instalar dependencias
 npm install
-
 # Ejecutar en desarrollo
 npm run dev
-
 # Compilar para producción
 npm run build
 ```
 
-## 👥 Roles del Sistema
+---
 
-1. **Usuario** - Accede a rutinas y seguimiento personal
-2. **Entrenadora** - Gestiona rutinas y usuarios asignados
-3. **Admin** - Administración completa de la plataforma
+## 📁 Estructura del Proyecto
 
-## 🔧 Configuración
-
-El proyecto usa **TailwindCSS v3.4.1** con configuración personalizada en `tailwind.config.js`.
-
-### PostCSS
-
-```js
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
+```text
+src/
+ ├── components/
+ │   ├── ui/                 # Componentes reutilizables
+ │   ├── features/           # Componentes funcionales (ej: MedalCard)
+ │   ├── calendar/           # Calendario custom (ej: CalendarioCustom)
+ ├── pages/
+ │   ├── auth/               # Login y autenticación
+ │   ├── usuario/            # Vistas del usuario (Home, Rutinas, Calendario, Progreso)
+ │   ├── entrenadora/        # Dashboard de entrenadora
+ │   └── admin/              # Dashboard de admin
+ ├── context/                # Context API (Auth, Schedule, Theme)
+ ├── hooks/                  # Custom hooks
+ ├── utils/                  # Utilidades
+ ├── data/                   # Datos mock/estáticos (mockUsers, mockWorkouts, medals...)
+ ├── App.jsx
+ └── main.jsx
+tailwind.config.js           # Configuración TailwindCSS
 ```
-
-## 🗓️ Sistema de Calendario
-
-El proyecto incluye un sistema completo de calendario personalizado:
-
-- **CalendarioCustom**: Componente principal que muestra los entrenamientos programados
-- **MiniCalendario**: Selector visual de fecha para programación de rutinas
-- **ScheduleContext**: Gestión de estado para entrenamientos programados con persistencia en localStorage
-
-### Funcionalidades del Calendario
-
-- ✅ Visualización de entrenamientos programados por día
-- ✅ Selección visual de fechas con `MiniCalendario`
-- ✅ Programación de rutinas desde la página de Rutinas
-- ✅ Marcado de entrenamientos como completados
-- ✅ Eliminación de entrenamientos programados
-- ✅ Persistencia de datos en localStorage
-- ✅ Categorización visual por tipo de entrenamiento (colores distintivos)
-
-## 📱 Características Principales
-
-### Gestión de Rutinas
-- Catálogo completo de entrenamientos con filtros por categoría
-- Sistema de búsqueda en tiempo real
-- Detalles completos de ejercicios, duración y calorías
-- Programación visual de rutinas con calendario
-
-### Seguimiento de Progreso y Gamificación
-- Marcado de rutinas completadas
-- Historial de entrenamientos
-- Visualización de gráficos de progreso (Recharts)
-- Sistema de medallas/logros: desbloquea medallas por hitos de entrenamiento, rachas, calorías, minutos y variedad de categorías
-- Persistencia de datos local
-
-### Sistema de Roles
-- **Usuario**: Acceso a rutinas, calendario y progreso personal
-- **Entrenadora**: Dashboard con gestión de usuarios y rutinas
-- **Admin**: Panel de administración completa
-
-## 📝 Notas de Desarrollo
-
-- Utiliza **React Router** para la navegación entre roles
-- Sistema de autenticación con **Context API**
-- Componentes UI reutilizables con TailwindCSS
-- Diseño mobile-first con navegación inferior
-- **ScheduleProvider** envuelve toda la aplicación para gestión de calendario
-- Persistencia de datos con **localStorage**
-
-## 🎯 Próximas Funcionalidades
-
-- Sistema de notificaciones para entrenamientos programados
-- Gráficos de progreso y estadísticas
-- Creación de rutinas personalizadas
-- Sistema de metas y objetivos
-- Integración con APIs externas de fitness
-- Performance Metrics y medallas avanzadas
 
 ---
 
-**PULSO 100** © 2025
+## 👥 Roles del Sistema
+- **Usuario:** Accede a rutinas y seguimiento personal
+- **Entrenadora:** Gestiona rutinas y usuarios asignados
+- **Admin:** Administración completa de la plataforma
+
+---
+
+## 🗓️ Sistema de Calendario
+- Visualización y programación de entrenamientos por día
+- Selección visual de fechas (MiniCalendario)
+- Marcado y eliminación de entrenamientos
+- Persistencia en localStorage
+- Categorización visual por tipo de entrenamiento
+
+---
+
+## 📊 Seguimiento y Gamificación
+- Gráficos de progreso (Recharts)
+- Historial de entrenamientos
+- Sistema de medallas/logros: 14 medallas desbloqueables, rachas, calorías, minutos y variedad de categorías
+- Estadísticas detalladas
+
+---
+
+## 🎨 Paleta de Colores
+| Color        | Hex      | Uso                |
+|-------------|----------|--------------------|
+| Rojo PULSO  | #FF0000  | Acento principal   |
+| Negro       | #0a0a0a  | Fondo principal    |
+| Negro Sec   | #1a1a1a  | Fondos secundarios |
+
+---
+
+## 📝 Notas para Desarrolladores
+- Navegación con React Router
+- Autenticación y estados globales con Context API
+- Componentes UI reutilizables con TailwindCSS
+- Diseño mobile-first con navegación inferior
+- ScheduleProvider envuelve la app para gestión de calendario
+- Persistencia de datos con localStorage
+
+---
+
+## 🎯 Próximas Funcionalidades
+- Sistema de notificaciones para entrenamientos programados
+- Gráficos de progreso y estadísticas avanzadas
+- Creación de rutinas personalizadas
+- Sistema de metas y objetivos
+- Integración con APIs externas de fitness
+- Métricas de performance y medallas avanzadas
+
+---
+
+## 👤 Autor
+Desarrollado por [TU_NOMBRE]
+
+## 📄 Licencia
+Este proyecto es privado y confidencial.
+
+---
+**PULSO 100** © 2025 - Tu límite es el siguiente pulso

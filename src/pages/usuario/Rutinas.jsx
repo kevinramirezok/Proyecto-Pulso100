@@ -7,7 +7,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import MiniCalendario from '../../components/ui/MiniCalendario';
 import { Clock, Flame, TrendingUp, Search, Play, Calendar, CheckCircle } from 'lucide-react';
-import EntrenamientoActivo from '../../components/features/EntrenamientoActivo';
+import { useEntrenamiento } from '../../context/EntrenamientoContext';
 
 export default function Rutinas() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -16,13 +16,23 @@ export default function Rutinas() {
   const { scheduleWorkout, completeWorkoutToday, isWorkoutCompleted } = useSchedule();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateForSchedule, setSelectedDateForSchedule] = useState('');
-  const [entrenamientoActivo, setEntrenamientoActivo] = useState(null);
+  const { iniciarEntrenamiento } = useEntrenamiento();
 
-  const filteredWorkouts = WORKOUTS.filter(workout => {
-    const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
-    const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredWorkouts = WORKOUTS
+    .filter(workout => {
+      const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
+      const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      const aCompleted = isWorkoutCompleted(a.id);
+      const bCompleted = isWorkoutCompleted(b.id);
+      // No completadas primero, completadas al final
+      if (aCompleted && !bCompleted) return 1;
+      if (!aCompleted && bCompleted) return -1;
+      // Mantener orden por ID (más nuevas primero si tienen ID mayor)
+      return b.id - a.id;
+    });
 
   const cerrarModal = () => {
     setSelectedWorkout(null);
@@ -211,7 +221,7 @@ export default function Rutinas() {
                           className="w-full flex items-center justify-center"
                           onClick={() => {
                             setSelectedWorkout(null);
-                            setEntrenamientoActivo(selectedWorkout);
+                            iniciarEntrenamiento(selectedWorkout);
                           }}
                         >
                           <Play size={18} className="mr-1" />
@@ -272,23 +282,7 @@ export default function Rutinas() {
         )}
       </Modal>
 
-      {/* Entrenamiento Activo */}
-      {entrenamientoActivo && (
-        <EntrenamientoActivo
-          workout={entrenamientoActivo}
-          onCancel={() => setEntrenamientoActivo(null)}
-          onComplete={(segundos) => {
-            const minutos = Math.round(segundos / 60);
-            completeWorkoutToday({
-              ...entrenamientoActivo,
-              duration: minutos > 0 ? minutos : entrenamientoActivo.duration
-            });
-            setEntrenamientoActivo(null);
-            alert(`¡Entrenamiento completado en ${Math.floor(segundos / 60)}:${(segundos % 60).toString().padStart(2, '0')}! 🎉`);
-          }}
-        />
-      )
-      }
+      {/* Entrenamiento Activo removido, ahora global en App.jsx */}
     </div>
   );
 }
