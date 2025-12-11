@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EXERCISES } from '../../data/exercises';
 import { useSchedule } from '../../context/ScheduleContext';
 import { WORKOUTS, CATEGORIES } from '../../data/mockWorkouts';
 import Card from '../../components/ui/Card';
@@ -6,7 +7,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import MiniCalendario from '../../components/ui/MiniCalendario';
-import { Clock, Flame, TrendingUp, Search, Play, Calendar, CheckCircle } from 'lucide-react';
+import { Clock, Flame, TrendingUp, Search, Play, Calendar, CheckCircle, Youtube } from 'lucide-react';
 import { useEntrenamiento } from '../../context/EntrenamientoContext';
 
 export default function Rutinas() {
@@ -17,6 +18,7 @@ export default function Rutinas() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateForSchedule, setSelectedDateForSchedule] = useState('');
   const { iniciarEntrenamiento } = useEntrenamiento();
+  const [videoEjercicio, setVideoEjercicio] = useState(null);
 
   const filteredWorkouts = WORKOUTS
     .filter(workout => {
@@ -27,10 +29,8 @@ export default function Rutinas() {
     .sort((a, b) => {
       const aCompleted = isWorkoutCompleted(a.id);
       const bCompleted = isWorkoutCompleted(b.id);
-      // No completadas primero, completadas al final
       if (aCompleted && !bCompleted) return 1;
       if (!aCompleted && bCompleted) return -1;
-      // Mantener orden por ID (más nuevas primero si tienen ID mayor)
       return b.id - a.id;
     });
 
@@ -38,6 +38,7 @@ export default function Rutinas() {
     setSelectedWorkout(null);
     setShowDatePicker(false);
     setSelectedDateForSchedule('');
+    setVideoEjercicio(null);
   };
 
   return (
@@ -164,125 +165,158 @@ export default function Rutinas() {
               <div>
                 <h3 className="text-white font-bold text-lg mb-4">Ejercicios</h3>
                 <div className="space-y-3">
-                  {selectedWorkout.exercises.map((exercise, index) => (
-                    <div key={index} className="bg-pulso-negro rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-pulso-rojo/10 text-pulso-rojo rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-white font-semibold mb-1">{exercise.name}</h4>
-                          <p className="text-gray-400 text-sm mb-1">{exercise.reps}</p>
-                          <p className="text-gray-500 text-xs">{exercise.notes}</p>
+                  {selectedWorkout.exercises.map((exercise, index) => {
+                    const exerciseData = exercise.exerciseId 
+                      ? EXERCISES.find(e => e.id === exercise.exerciseId)
+                      : null;
+                    
+                    return (
+                      <div key={index} className="bg-pulso-negro rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-pulso-rojo/10 text-pulso-rojo rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-white font-semibold mb-1">{exercise.name}</h4>
+                              {exerciseData?.videoUrl && (
+                                <button
+                                  onClick={() => setVideoEjercicio(videoEjercicio?.id === exerciseData.id ? null : exerciseData)}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    videoEjercicio?.id === exerciseData.id 
+                                      ? 'bg-pulso-rojo text-white' 
+                                      : 'bg-pulso-rojo/10 text-pulso-rojo hover:bg-pulso-rojo/20'
+                                  }`}
+                                >
+                                  <Youtube size={18} />
+                                </button>
+                              )}
+                            </div>
+                            <p className="text-gray-400 text-sm mb-1">{exercise.reps}</p>
+                            <p className="text-gray-500 text-xs">{exercise.notes}</p>
+                            
+                            {/* Video del ejercicio */}
+                            {videoEjercicio?.id === exerciseData?.id && exerciseData?.videoUrl && (
+                              <div className="mt-3 relative w-full pt-[56.25%] rounded-lg overflow-hidden bg-black">
+                                <iframe
+                                  className="absolute top-0 left-0 w-full h-full"
+                                  src={exerciseData.videoUrl.replace('watch?v=', 'embed/')}
+                                  title={`Video de ${exercise.name}`}
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Selector de fecha */}
+            {showDatePicker && (
+              <div className="space-y-4">
+                <label className="block text-gray-400 text-sm">Seleccioná la fecha:</label>
+                <MiniCalendario
+                  selectedDate={selectedDateForSchedule}
+                  onSelectDate={(fecha) => setSelectedDateForSchedule(fecha.toISOString())}
+                />
+                {selectedDateForSchedule && (
+                  <p className="text-center text-white">
+                    <span className="text-pulso-rojo font-bold">
+                      {new Date(selectedDateForSchedule).toLocaleDateString('es-ES', { 
+                        weekday: 'long', 
+                        day: 'numeric', 
+                        month: 'long' 
+                      })}
+                    </span>
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => {
+                      setShowDatePicker(false);
+                      setSelectedDateForSchedule('');
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    disabled={!selectedDateForSchedule}
+                    onClick={() => {
+                      if (selectedDateForSchedule) {
+                        scheduleWorkout(selectedWorkout, selectedDateForSchedule);
+                        alert('✅ Entrenamiento programado!');
+                        cerrarModal();
+                      }
+                    }}
+                  >
+                    Confirmar
+                  </Button>
                 </div>
               </div>
             )}
 
             {/* Acciones */}
-            <div className="space-y-3">
-              {isWorkoutCompleted(selectedWorkout.id) ? (
-                <div className="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
-                  <CheckCircle className="mx-auto mb-2 text-green-500" size={32} />
-                  <p className="text-green-500 font-semibold">¡Rutina Completada!</p>
-                </div>
-              ) : (
-                <>
-                  {!showDatePicker ? (
-                    <>
+            {!showDatePicker && (
+              <div className="space-y-3">
+                {isWorkoutCompleted(selectedWorkout.id) ? (
+                  <div className="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
+                    <CheckCircle className="mx-auto mb-2 text-green-500" size={32} />
+                    <p className="text-green-500 font-semibold">¡Rutina Completada!</p>
+                  </div>
+                ) : (
+                  <>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => {
+                        completeWorkoutToday(selectedWorkout);
+                        alert('¡Rutina completada! 🎉');
+                      }}
+                    >
+                      <CheckCircle size={20} className="mr-2" />
+                      Marcar como Completada
+                    </Button>
+                    <div className="grid grid-cols-2 gap-3">
                       <Button
-                        variant="primary"
-                        size="lg"
-                        className="w-full"
+                        variant="secondary"
+                        size="md"
+                        className="w-full flex items-center justify-center"
+                        onClick={() => setShowDatePicker(true)}
+                      >
+                        <Calendar size={18} className="mr-1" />
+                        <span className="text-sm">Programar</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="md" 
+                        className="w-full flex items-center justify-center"
                         onClick={() => {
-                          completeWorkoutToday(selectedWorkout);
-                          alert('¡Rutina completada! 🎉');
+                          setSelectedWorkout(null);
+                          iniciarEntrenamiento(selectedWorkout);
                         }}
                       >
-                        <CheckCircle size={20} className="mr-2" />
-                        Marcar como Completada
+                        <Play size={18} className="mr-1" />
+                        <span className="text-sm">Iniciar</span>
                       </Button>
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          className="w-full flex items-center justify-center"
-                          onClick={() => setShowDatePicker(true)}
-                        >
-                          <Calendar size={18} className="mr-1" />
-                          <span className="text-sm">Programar</span>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="md" 
-                          className="w-full flex items-center justify-center"
-                          onClick={() => {
-                            setSelectedWorkout(null);
-                            iniciarEntrenamiento(selectedWorkout);
-                          }}
-                        >
-                          <Play size={18} className="mr-1" />
-                          <span className="text-sm">Iniciar</span>
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="space-y-4">
-                      <label className="block text-gray-400 text-sm">Seleccioná la fecha:</label>
-                      <MiniCalendario
-                        selectedDate={selectedDateForSchedule}
-                        onSelectDate={(fecha) => setSelectedDateForSchedule(fecha.toISOString())}
-                      />
-                      {selectedDateForSchedule && (
-                        <p className="text-center text-white">
-                          <span className="text-pulso-rojo font-bold">
-                            {new Date(selectedDateForSchedule).toLocaleDateString('es-ES', { 
-                              weekday: 'long', 
-                              day: 'numeric', 
-                              month: 'long' 
-                            })}
-                          </span>
-                        </p>
-                      )}
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() => {
-                            setShowDatePicker(false);
-                            setSelectedDateForSchedule('');
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          variant="primary"
-                          size="md"
-                          disabled={!selectedDateForSchedule}
-                          onClick={() => {
-                            if (selectedDateForSchedule) {
-                              scheduleWorkout(selectedWorkout, selectedDateForSchedule);
-                              alert('✅ Entrenamiento programado!');
-                              cerrarModal();
-                            }
-                          }}
-                        >
-                          Confirmar
-                        </Button>
-                      </div>
                     </div>
-                  )}
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>
-
-      {/* Entrenamiento Activo removido, ahora global en App.jsx */}
     </div>
   );
 }

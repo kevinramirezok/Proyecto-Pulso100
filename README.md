@@ -12,12 +12,15 @@ Plataforma de entrenamiento personalizado que conecta usuarios con su entrenador
 
 ## 📱 Características para Usuarios
 - Calendario interactivo para programar entrenamientos
-- Biblioteca de rutinas con filtros por categoría
+- Biblioteca de rutinas con filtros por categoría y buscador
+- **Biblioteca de ejercicios con videos tutoriales por ejercicio**
+- **Videos embebidos de YouTube en cada ejercicio de rutina**
 - Seguimiento de progreso con gráficos
-- Timer de entrenamiento y lista de ejercicios
+- Timer de entrenamiento en tiempo real con lista de ejercicios
 - Sistema de racha (días consecutivos)
 - Medallas y logros desbloqueables
 - Perfil con estadísticas personales
+- Entrenamiento activo global con cronómetro
 
 ### Categorías de Entrenamiento
 - 🚴 Bicicleta
@@ -59,18 +62,25 @@ npm run build
 ```text
 src/
  ├── components/
- │   ├── ui/                 # Componentes reutilizables
- │   ├── features/           # Componentes funcionales (ej: MedalCard)
- │   ├── calendar/           # Calendario custom (ej: CalendarioCustom)
+ │   ├── ui/                 # Componentes reutilizables (Button, Card, Modal, Input...)
+ │   ├── features/           # Componentes funcionales (MedalCard, EntrenamientoActivo)
+ │   ├── layout/             # Layouts (LayoutUsuario, LayoutAdmin, BottomNav)
+ │   └── calendar/           # Calendario custom (CalendarioCustom)
  ├── pages/
  │   ├── auth/               # Login y autenticación
- │   ├── usuario/            # Vistas del usuario (Home, Rutinas, Calendario, Progreso)
- │   ├── entrenadora/        # Dashboard de entrenadora
+ │   ├── usuario/            # Vistas del usuario (Home, Rutinas, Calendario, Progreso, Perfil)
  │   └── admin/              # Dashboard de admin
- ├── context/                # Context API (Auth, Schedule, Theme)
- ├── hooks/                  # Custom hooks
+ ├── context/                # Context API (Auth, Schedule, Theme, Entrenamiento)
+ │   ├── AuthContext.jsx
+ │   ├── ScheduleContext.jsx
+ │   ├── ThemeContext.jsx
+ │   └── EntrenamientoContext.jsx
+ ├── hooks/                  # Custom hooks (vacío por ahora)
  ├── utils/                  # Utilidades
- ├── data/                   # Datos mock/estáticos (mockUsers, mockWorkouts, medals...)
+ ├── data/                   # Datos mock/estáticos
+ │   ├── exercises.js        # Biblioteca de ejercicios con videos y descripción
+ │   ├── mockWorkouts.js     # Rutinas que referencian ejercicios por exerciseId
+ │   └── medals.js           # Sistema de medallas y logros
  ├── App.jsx
  └── main.jsx
 tailwind.config.js           # Configuración TailwindCSS
@@ -79,9 +89,8 @@ tailwind.config.js           # Configuración TailwindCSS
 ---
 
 ## 👥 Roles del Sistema
-- **Usuario:** Accede a rutinas y seguimiento personal
-- **Entrenadora:** Gestiona rutinas y usuarios asignados
-- **Admin:** Administración completa de la plataforma
+- **Usuario:** Accede a rutinas, seguimiento personal, calendario y progreso
+- **Admin:** Administración completa de la plataforma y gestión de entrenamientos
 
 ---
 
@@ -112,27 +121,33 @@ tailwind.config.js           # Configuración TailwindCSS
 ---
 
 ## 📝 Notas para Desarrolladores
-- Navegación con React Router
-- Autenticación y estados globales con Context API
+- Navegación con React Router v6
+- Autenticación y estados globales con Context API (Auth, Schedule, Theme, Entrenamiento)
 - Componentes UI reutilizables con TailwindCSS
-- Diseño mobile-first con navegación inferior
-- ScheduleProvider envuelve la app para gestión de calendario
+- Diseño mobile-first con navegación inferior (BottomNav)
+- ScheduleProvider y EntrenamientoProvider envuelven la app
 - Persistencia de datos con localStorage
+- **Las rutinas (`mockWorkouts.js`) referencian ejercicios de la biblioteca (`exercises.js`) por `exerciseId`**
+- **Cada ejercicio puede tener un video de YouTube embebido, visible desde el modal de detalle**
+- **Entrenamiento activo global con cronómetro en tiempo real**
+- Los videos se muestran ejercicio por ejercicio con botón de YouTube
 
 ---
 
 ## 🎯 Próximas Funcionalidades
 - Sistema de notificaciones para entrenamientos programados
-- Gráficos de progreso y estadísticas avanzadas
-- Creación de rutinas personalizadas
-- Sistema de metas y objetivos
-- Integración con APIs externas de fitness
-- Métricas de performance y medallas avanzadas
+- Creación de rutinas personalizadas desde el usuario
+- Sistema de metas y objetivos personalizados
+- Integración con APIs externas de fitness (Strava, Garmin, etc.)
+- Exportación de datos de progreso
+- Chat en vivo con entrenador
+- Compartir logros en redes sociales
+- Modo offline con sincronización
 
 ---
 
 ## 👤 Autor
-Desarrollado por [TU_NOMBRE]
+Desarrollado por Kevin Marcos Ramirez
 
 ## 📄 Licencia
 Este proyecto es privado y confidencial.
