@@ -112,45 +112,124 @@ tailwind.config.js           # Configuración TailwindCSS
 ---
 
 ## 🎨 Paleta de Colores
+
+# PULSO 100 🏃‍♂️💪
+
+**Tu límite es el siguiente pulso**
+
+Plataforma de entrenamiento personalizado que conecta usuarios con su entrenador/a personal de forma virtual.
+
+## 🚀 Demo
+[Ver Demo en Vivo](https://proyecto-pulso100.vercel.app)
+
+## 📱 Características
+
+### Usuario
+- Calendario interactivo para programar y visualizar entrenamientos
+- Biblioteca de rutinas con buscador y filtros
+- Biblioteca de ejercicios con videos tutoriales
+- Videos embebidos de YouTube en cada ejercicio de rutina
+- Seguimiento de progreso con gráficos (Recharts)
+- Timer de entrenamiento en tiempo real
+- Sistema de racha (días consecutivos)
+- Medallas y logros desbloqueables
+- Perfil con estadísticas personales
+- Entrenamiento activo global con cronómetro
+
+### Admin
+- Dashboard de administración
+- Gestión de usuarios y entrenamientos (en desarrollo)
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend:** React 18, Vite
+- **Estilos:** Tailwind CSS
+- **Gráficos:** Recharts
+- **Iconos:** Lucide React
+- **Routing:** React Router DOM v7
+- **Estado global:** Context API
+- **Persistencia local:** LocalStorage
+- **Fechas:** date-fns
+- **Backend y Auth:** Supabase
+- **Otros:** ESLint, PostCSS
+
+## 📦 Instalación
+
+```bash
+# Clonar repositorio
+git clone https://github.com/kevinramirezok/Proyecto-Pulso100.git
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en desarrollo
+npm run dev
+
+# Compilar para producción
+npm run build
+```
+
+## 📁 Estructura del Proyecto
+
+```text
+src/
+ ├── App.jsx
+ ├── App.css
+ ├── index.css
+ ├── main.jsx
+ ├── assets/
+ ├── components/
+ │   ├── ui/           # Badge, Button, Card, Input, MiniCalendario, Modal
+ │   ├── features/     # EntrenamientoActivo, MedalCard
+ │   ├── layout/       # BottomNav, LayoutAdmin, LayoutUsuario
+ │   └── calendar/     # CalendarioCustom
+ ├── context/          # AuthContext, ScheduleContext, ThemeContext, EntrenamientoContext
+ ├── data/             # exercises.js, mockWorkouts.js, medals.js
+ ├── hooks/            # (custom hooks)
+ ├── lib/
+ │   └── supabase.js   # Configuración de Supabase
+ ├── pages/
+ │   ├── auth/         # Login.jsx
+ │   ├── usuario/      # Home, Rutinas, Calendario, Progreso, Perfil
+ │   └── admin/        # Dashboard.jsx
+ └── utils/
+```
+
+## 🗄️ Base de Datos
+
+- **Proveedor:** Supabase
+- **Tablas principales:**
+	- `exercises`
+	- `workouts`
+	- `workout_exercises`
+	- `user_profiles`
+	- `scheduled_workouts`
+
+## 👥 Roles
+
+- **Usuario:** Acceso a rutinas, calendario, progreso, perfil y gamificación.
+- **Admin:** Acceso a dashboard y gestión de la plataforma.
+
+## 🎨 Paleta de Colores
+
 | Color        | Hex      | Uso                |
-|-------------|----------|--------------------|
-| Rojo PULSO  | #FF0000  | Acento principal   |
-| Negro       | #0a0a0a  | Fondo principal    |
-| Negro Sec   | #1a1a1a  | Fondos secundarios |
+|--------------|----------|--------------------|
+| Rojo PULSO   | #FF0000  | Acento principal   |
+| Negro        | #0a0a0a  | Fondo principal    |
+| Negro Sec    | #1a1a1a  | Fondos secundarios |
 
----
+## 📝 Variables de Entorno
 
-## 📝 Notas para Desarrolladores
-- Navegación con React Router v6
-- Autenticación y estados globales con Context API (Auth, Schedule, Theme, Entrenamiento)
-- Componentes UI reutilizables con TailwindCSS
-- Diseño mobile-first con navegación inferior (BottomNav)
-- ScheduleProvider y EntrenamientoProvider envuelven la app
-- Persistencia de datos con localStorage
-- **Las rutinas (`mockWorkouts.js`) referencian ejercicios de la biblioteca (`exercises.js`) por `exerciseId`**
-- **Cada ejercicio puede tener un video de YouTube embebido, visible desde el modal de detalle**
-- **Entrenamiento activo global con cronómetro en tiempo real**
-- Los videos se muestran ejercicio por ejercicio con botón de YouTube
-
----
-
-## 🎯 Próximas Funcionalidades
-- Sistema de notificaciones para entrenamientos programados
-- Creación de rutinas personalizadas desde el usuario
-- Sistema de metas y objetivos personalizados
-- Integración con APIs externas de fitness (Strava, Garmin, etc.)
-- Exportación de datos de progreso
-- Chat en vivo con entrenador
-- Compartir logros en redes sociales
-- Modo offline con sincronización
-
----
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
 ## 👤 Autor
+
 Desarrollado por Kevin Marcos Ramirez
 
 ## 📄 Licencia
-Este proyecto es privado y confidencial.
+
+Proyecto privado y confidencial.
 
 ---
-**PULSO 100** © 2025 - Tu límite es el siguiente pulso
+**PULSO 100** © 2025

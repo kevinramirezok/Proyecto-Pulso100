@@ -3,10 +3,12 @@ import { useSchedule } from '../../context/ScheduleContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Users, Calendar, Dumbbell, Settings, TrendingUp, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const { scheduledWorkouts } = useSchedule();
+  const navigate = useNavigate();
 
   // Stats reales
   const totalCompletados = scheduledWorkouts.filter(w => w.status === 'completed').length;
@@ -65,7 +67,19 @@ export default function Dashboard() {
             <Users size={18} className="mr-2" />
             Usuarios
           </Button>
-          <Button variant="secondary" className="w-full flex items-center justify-center">
+          <Button 
+            variant="secondary" 
+            className="w-full flex items-center justify-center"
+            onClick={() => navigate('/admin/ejercicios')}
+          >
+            <Dumbbell size={18} className="mr-2" />
+            Ejercicios
+          </Button>
+          <Button 
+            variant="secondary" 
+            className="w-full flex items-center justify-center"
+            onClick={() => navigate('/admin/rutinas')}
+          >
             <Dumbbell size={18} className="mr-2" />
             Rutinas
           </Button>
