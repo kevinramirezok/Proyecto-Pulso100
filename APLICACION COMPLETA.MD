@@ -3,7 +3,7 @@
   "styling": "Tailwind CSS (con dark mode)",
   "icons": "Lucide React",
   "charts": "Recharts",
-  "calendar": "React Big Calendar",
+  "calendar": "CalendarioCustom (sin Big Calendar)",
   "routing": "React Router DOM v6",
   "date-utils": "date-fns",
   "animations": "Framer Motion (opcional)",
@@ -32,10 +32,10 @@
 ### **📅 SEMANA 1: Setup + Fundación (1-7 Dic)** ✅ COMPLETADA
 **Entregables:**
 - ✅ Proyecto Vite configurado
-- ⚠️ Tailwind configurado (solo modo oscuro implementado)
-- ❌ React Big Calendar removido → Reemplazado por CalendarioCustom
+- ✅ Tailwind configurado (modo oscuro implementado)
+- ✅ CalendarioCustom implementado (sin Big Calendar)
 - ✅ Sistema de rutas por roles
-- ✅ Layouts base (Usuario/Entrenadora/Admin)
+- ✅ Layouts base (Usuario/Admin)
 - ✅ Bottom Navigation por rol
 - ✅ Componentes UI base (Button, Card, Badge, Input, Modal, MiniCalendario)
 - ✅ Login mockup con selección de rol
@@ -111,26 +111,15 @@
 
 ---
 
-### **📅 SEMANA 5: Vista Entrenadora (29 Dic - 4 Ene)** ⏳ PENDIENTE
-**Entregables:**
-- ⚠️ **Dashboard Entrenadora**: UI base creada, sin funcionalidad
-- ❌ **Calendario Entrenadora**:
-  - Selector de usuario
-  - Ver calendario de cualquier usuario
-  - Asignar workouts desde calendario
-  - Drag & Drop de rutinas
-  - Ver adherencia visual
-- ❌ **Mis Usuarios**: Lista con progreso de cada uno
-- ❌ **Crear Rutina**:
-  - Formulario completo
-  - Todas las propiedades
-  - Lista de ejercicios dinámica
-  - Marcar como "General" o "Personalizada"
-  - Asignar a usuario específico
-  - Agregar URL de video tutorial
-- ❌ **Ver Progreso de Usuario**: Gráficos individuales
 
-**Checkpoint:** ❌ Entrenadora puede crear, asignar rutinas y gestionar calendarios
+### **📅 SEMANA 5: Integración Supabase (29 Dic - 4 Ene)** ⏳ PENDIENTE
+**Entregables:**
+- ⚠️ Conexión inicial a Supabase
+- ❌ CRUD de rutinas y ejercicios desde Admin
+- ❌ Reemplazo de datos mock por datos reales
+- ❌ Autenticación real con Supabase Auth
+
+**Checkpoint:** ❌ App conectada a base de datos real
 **Estado:** Solo estructura base
 
 ---
@@ -201,7 +190,6 @@ pulso100-v2/
 │   │   │   └── CalendarToolbar.jsx
 │   │   ├── layout/
 │   │   │   ├── LayoutUsuario.jsx
-│   │   │   ├── LayoutEntrenadora.jsx
 │   │   │   ├── LayoutAdmin.jsx
 │   │   │   ├── BottomNav.jsx
 │   │   │   └── ThemeSwitcher.jsx
@@ -228,17 +216,9 @@ pulso100-v2/
 │   │   │   ├── Rutinas.jsx
 │   │   │   ├── Progreso.jsx
 │   │   │   └── Perfil.jsx
-│   │   ├── entrenadora/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Calendario.jsx
-│   │   │   ├── MisUsuarios.jsx
-│   │   │   ├── CrearRutina.jsx
-│   │   │   └── Perfil.jsx
 │   │   └── admin/
 │   │       ├── Dashboard.jsx
-│   │       ├── Usuarios.jsx
-│   │       ├── Entrenadores.jsx
-│   │       └── Config.jsx
+│   │       └── (CRUD y gestión en desarrollo)
 │   ├── hooks/
 │   │   ├── useAuth.js
 │   │   ├── useTheme.js
@@ -248,16 +228,17 @@ pulso100-v2/
 │   │   └── useScheduledWorkouts.js
 │   ├── context/
 │   │   ├── AuthContext.jsx
-│   │   └── ThemeContext.jsx
+│   │   ├── ScheduleContext.jsx
+│   │   ├── ThemeContext.jsx
+│   │   └── EntrenamientoContext.jsx
 │   ├── utils/
 │   │   ├── constants.js
 │   │   ├── helpers.js
 │   │   └── dateUtils.js
 │   ├── data/
-│   │   ├── mockUsers.js
+│   │   ├── exercises.js
 │   │   ├── mockWorkouts.js
-│   │   ├── mockProgress.js
-│   │   └── mockScheduled.js
+│   │   └── medals.js
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css

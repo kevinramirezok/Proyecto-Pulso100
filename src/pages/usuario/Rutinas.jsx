@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { EXERCISES } from '../../data/exercises';
 import { useSchedule } from '../../context/ScheduleContext';
-import { WORKOUTS, CATEGORIES } from '../../data/mockWorkouts';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
@@ -9,8 +7,19 @@ import Modal from '../../components/ui/Modal';
 import MiniCalendario from '../../components/ui/MiniCalendario';
 import { Clock, Flame, TrendingUp, Search, Play, Calendar, CheckCircle, Youtube } from 'lucide-react';
 import { useEntrenamiento } from '../../context/EntrenamientoContext';
+import { useWorkouts } from '../../context/WorkoutContext';
+
+const CATEGORIES = [
+  { key: 'all', label: 'Todas' },
+  { key: 'bicicleta', label: 'Bicicleta' },
+  { key: 'running', label: 'Running' },
+  { key: 'fuerza', label: 'Fuerza' },
+  { key: 'natacion', label: 'Natación' },
+  { key: 'otro', label: 'Otro' },
+];
 
 export default function Rutinas() {
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -19,8 +28,9 @@ export default function Rutinas() {
   const [selectedDateForSchedule, setSelectedDateForSchedule] = useState('');
   const { iniciarEntrenamiento } = useEntrenamiento();
   const [videoEjercicio, setVideoEjercicio] = useState(null);
+  const { workouts, exercises, loading, error } = useWorkouts();
 
-  const filteredWorkouts = WORKOUTS
+  const filteredWorkouts = workouts
     .filter(workout => {
       const matchesCategory = selectedCategory === 'all' || workout.category === selectedCategory;
       const matchesSearch = workout.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -33,6 +43,7 @@ export default function Rutinas() {
       if (!aCompleted && bCompleted) return -1;
       return b.id - a.id;
     });
+
 
   const cerrarModal = () => {
     setSelectedWorkout(null);
@@ -49,81 +60,97 @@ export default function Rutinas() {
         <p className="text-gray-400">Explorá y elegí tu próximo entrenamiento</p>
       </div>
 
-      {/* Buscador */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
-          placeholder="Buscar rutinas..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-pulso-negroSec text-white border border-gray-700 rounded-lg focus:outline-none focus:border-pulso-rojo"
-        />
-      </div>
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">Cargando rutinas...</p>
+        </div>
+      )}
 
-      {/* Filtros */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {CATEGORIES.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setSelectedCategory(key)}
-            className={`
-              px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-              ${selectedCategory === key
-                ? 'bg-pulso-rojo text-white'
-                : 'bg-pulso-negroSec text-gray-400 hover:text-white border border-gray-700'
-              }
-            `}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 text-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
-      {/* Lista de Rutinas */}
-      <div className="space-y-4">
-        {filteredWorkouts.length === 0 ? (
-          <Card className="text-center py-12">
-            <p className="text-gray-400">No se encontraron rutinas</p>
-          </Card>
-        ) : (
-          filteredWorkouts.map((workout) => (
-            <Card key={workout.id} className="hover:border-pulso-rojo/50 transition-colors">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <h3 className="text-white font-bold text-lg mb-1">{workout.name}</h3>
-                  <p className="text-gray-400 text-sm">{workout.description}</p>
-                </div>
-                <Badge variant={workout.category}>{workout.category}</Badge>
-              </div>
+      {!loading && !error && (
+        <>
+          {/* Buscador */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar rutinas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-pulso-negroSec text-white border border-gray-700 rounded-lg focus:outline-none focus:border-pulso-rojo"
+            />
+          </div>
 
-              <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
-                <div className="flex items-center gap-1">
-                  <Clock size={16} />
-                  <span>{workout.duration} min</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Flame size={16} />
-                  <span>{workout.calories} kcal</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <TrendingUp size={16} />
-                  <span>{workout.level}</span>
-                </div>
-              </div>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full"
-                onClick={() => setSelectedWorkout(workout)}
+          {/* Filtros */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {CATEGORIES.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setSelectedCategory(key)}
+                className={`
+                  px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                  ${selectedCategory === key
+                    ? 'bg-pulso-rojo text-white'
+                    : 'bg-pulso-negroSec text-gray-400 hover:text-white border border-gray-700'
+                  }
+                `}
               >
-                Ver Detalle
-              </Button>
-            </Card>
-          ))
-        )}
-      </div>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Lista de Rutinas */}
+          <div className="space-y-4">
+            {filteredWorkouts.length === 0 ? (
+              <Card className="text-center py-12">
+                <p className="text-gray-400">No se encontraron rutinas</p>
+              </Card>
+            ) : (
+              filteredWorkouts.map((workout) => (
+                <Card key={workout.id} className="hover:border-pulso-rojo/50 transition-colors">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-lg mb-1">{workout.name}</h3>
+                      <p className="text-gray-400 text-sm">{workout.description}</p>
+                    </div>
+                    <Badge variant={workout.category}>{workout.category}</Badge>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
+                    <div className="flex items-center gap-1">
+                      <Clock size={16} />
+                      <span>{workout.duration} min</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Flame size={16} />
+                      <span>{workout.calories} kcal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <TrendingUp size={16} />
+                      <span>{workout.level}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setSelectedWorkout(workout)}
+                  >
+                    Ver Detalle
+                  </Button>
+                </Card>
+              ))
+            )}
+          </div>
+        </>
+      )}
 
       {/* Modal Detalle */}
       <Modal
@@ -167,9 +194,8 @@ export default function Rutinas() {
                 <div className="space-y-3">
                   {selectedWorkout.exercises.map((exercise, index) => {
                     const exerciseData = exercise.exerciseId 
-                      ? EXERCISES.find(e => e.id === exercise.exerciseId)
+                      ? exercises.find(e => e.id === exercise.exerciseId)
                       : null;
-                    
                     return (
                       <div key={index} className="bg-pulso-negro rounded-lg p-4">
                         <div className="flex items-start gap-3">
@@ -179,7 +205,7 @@ export default function Rutinas() {
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <h4 className="text-white font-semibold mb-1">{exercise.name}</h4>
-                              {exerciseData?.videoUrl && (
+                              {exerciseData?.video_url && (
                                 <button
                                   onClick={() => setVideoEjercicio(videoEjercicio?.id === exerciseData.id ? null : exerciseData)}
                                   className={`p-2 rounded-lg transition-colors ${
@@ -194,13 +220,12 @@ export default function Rutinas() {
                             </div>
                             <p className="text-gray-400 text-sm mb-1">{exercise.reps}</p>
                             <p className="text-gray-500 text-xs">{exercise.notes}</p>
-                            
                             {/* Video del ejercicio */}
-                            {videoEjercicio?.id === exerciseData?.id && exerciseData?.videoUrl && (
+                            {videoEjercicio?.id === exerciseData?.id && exerciseData?.video_url && (
                               <div className="mt-3 relative w-full pt-[56.25%] rounded-lg overflow-hidden bg-black">
                                 <iframe
                                   className="absolute top-0 left-0 w-full h-full"
-                                  src={exerciseData.videoUrl.replace('watch?v=', 'embed/')}
+                                  src={exerciseData.video_url.replace('watch?v=', 'embed/')}
                                   title={`Video de ${exercise.name}`}
                                   frameBorder="0"
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
