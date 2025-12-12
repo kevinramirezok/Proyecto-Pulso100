@@ -11,6 +11,7 @@ import HomeUsuario from './pages/usuario/Home';
 import Rutinas from './pages/usuario/Rutinas';
 import DashboardAdmin from './pages/admin/Dashboard';
 import EjerciciosAdmin from './pages/admin/Ejercicios';
+import RutinasAdmin from './pages/admin/RutinasAdmin';
 import Calendario from './pages/usuario/Calendario';
 import Progreso from './pages/usuario/Progreso';
 import Perfil from './pages/usuario/Perfil';
@@ -71,7 +72,7 @@ function App() {
                       <Route path="dashboard" element={<DashboardAdmin />} />
                       <Route path="ejercicios" element={<EjerciciosAdmin />} />
                       <Route path="usuarios" element={<div className="text-white">Mis Usuarios (próximamente)</div>} />
-                      <Route path="rutinas" element={<div className="text-white">Gestionar Rutinas (próximamente)</div>} />
+                      <Route path="rutinas" element={<RutinasAdmin />} />
                       <Route path="calendario" element={<div className="text-white">Calendario General (próximamente)</div>} />
                       <Route path="config" element={<div className="text-white">Configuración (próximamente)</div>} />
                     </Routes>
