@@ -19,9 +19,6 @@ body {
   min-height: 100vh;
 }
 
-/* Estilos de React Big Calendar */
-@import 'react-big-calendar/lib/css/react-big-calendar.css';
-
 .rbc-calendar {
   background-color: transparent;
   color: #ffffff;
