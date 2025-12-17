@@ -4,15 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar, Play } from 'lucide-react';
-import { WORKOUTS } from '../../data/mockWorkouts';
+import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar, Play, Dumbbell, Award } from 'lucide-react';
+import { useWorkouts } from '../../context/WorkoutContext';
 import { useEntrenamiento } from '../../context/EntrenamientoContext';
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { scheduledWorkouts, completeScheduledWorkout, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
   const navigate = useNavigate();
   const { iniciarEntrenamiento } = useEntrenamiento();
+  const { workouts, loading } = useWorkouts();
 
   // Obtener entrenamientos de hoy pendientes
   const hoy = new Date();
@@ -29,111 +30,108 @@ export default function Home() {
     month: 'long' 
   });
 
+  // Loading profesional
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-pulso-rojo border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen relative">
-      {/* Fondo con overlay */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: 'url(/logo-runner.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-pulso-negro/95 via-pulso-negro/85 to-pulso-negro/95"></div>
+    <div className="space-y-6 pb-24">
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-gray-500 text-sm capitalize">{fechaHoyFormateada}</p>
+          <h1 className="text-3xl font-bold text-white mt-1">Hola, {user?.name}! 👋</h1>
+        </div>
+        <div className="bg-pulso-rojo/10 px-4 py-2 rounded-xl text-center">
+          <p className="text-pulso-rojo text-2xl font-bold">{getStreak()}</p>
+          <p className="text-gray-400 text-xs">🔥 Racha</p>
+        </div>
       </div>
 
-      {/* Contenido */}
-      <div className="relative z-10 space-y-6 pb-24">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Hola, {user?.name}! 👋</h1>
-            <p className="text-gray-400 text-sm mt-1">Listo para entrenar hoy?</p>
+      {/* Stats principales */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="text-center py-4">
+          <div className="bg-pulso-rojo/10 w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <Flame className="text-pulso-rojo" size={20} />
           </div>
-          <Button variant="outline" size="sm" onClick={logout}>
-            Salir
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="flex items-center gap-3 backdrop-blur-sm bg-pulso-negroSec/80">
-            <div className="bg-pulso-rojo/10 p-3 rounded-lg">
-              <Flame className="text-pulso-rojo" size={24} />
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs">Esta Semana</p>
-              <p className="text-white text-2xl font-bold">{getWeekCompleted()}</p>
-            </div>
-          </Card>
-
-          <Card className="flex items-center gap-3 backdrop-blur-sm bg-pulso-negroSec/80">
-            <div className="bg-blue-500/10 p-3 rounded-lg">
-              <Clock className="text-blue-500" size={24} />
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs">Total</p>
-              <p className="text-white text-2xl font-bold">{getTotalCompleted()}</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Racha */}
-        <Card className="backdrop-blur-sm bg-pulso-negroSec/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-500/10 p-3 rounded-lg">
-                <span className="text-3xl">🔥</span>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">Racha Actual</p>
-                 <p className="text-white text-2xl font-bold">{getStreak()} {getStreak() === 1 ? 'día' : 'días'}</p>
-              </div>
-            </div>
-            {getStreak() >= 7 && (
-              <div className="bg-orange-500/20 px-3 py-1 rounded-full">
-                <span className="text-orange-500 text-sm font-bold">🏆 ¡Increíble!</span>
-              </div>
-            )}
-          </div>
-          {getStreak() === 0 && (
-            <p className="text-gray-500 text-sm mt-3">¡Completá un entrenamiento hoy para iniciar tu racha!</p>
-          )}
+          <p className="text-white text-xl font-bold">{getWeekCompleted()}</p>
+          <p className="text-gray-500 text-xs">Esta semana</p>
         </Card>
+        
+        <Card className="text-center py-4">
+          <div className="bg-blue-500/10 w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <CheckCircle className="text-blue-500" size={20} />
+          </div>
+          <p className="text-white text-xl font-bold">{getTotalCompleted()}</p>
+          <p className="text-gray-500 text-xs">Total</p>
+        </Card>
+        
+        <Card className="text-center py-4">
+          <div className="bg-green-500/10 w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2">
+            <Dumbbell className="text-green-500" size={20} />
+          </div>
+          <p className="text-white text-xl font-bold">{workouts.length}</p>
+          <p className="text-gray-500 text-xs">Rutinas</p>
+        </Card>
+      </div>
 
-        {/* Rutina del día */}
-        <Card className="backdrop-blur-sm bg-pulso-negroSec/80">
+      {/* Progreso semanal */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white font-semibold">Progreso Semanal</h3>
+          <span className="text-gray-400 text-sm">{getWeekCompleted()}/6 días</span>
+        </div>
+        <div className="w-full bg-gray-800 rounded-full h-2.5">
+          <div 
+            className="bg-gradient-to-r from-pulso-rojo to-orange-500 h-2.5 rounded-full transition-all duration-500" 
+            style={{ width: `${Math.min((getWeekCompleted() / 6) * 100, 100)}%` }}
+          ></div>
+        </div>
+        {getWeekCompleted() >= 6 && (
+          <p className="text-green-500 text-sm mt-2 flex items-center gap-1">
+            <Award size={14} />
+            ¡Objetivo semanal completado!
+          </p>
+        )}
+      </Card>
+
+      {/* Rutina del día */}
+      <div>
+        <h3 className="text-white font-semibold mb-3">Rutina de Hoy</h3>
+        <Card className={proximoEntrenamiento ? 'border-pulso-rojo/30' : ''}>
           {proximoEntrenamiento ? (
             <>
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-white font-bold text-lg">Rutina de Hoy</h3>
-                  <p className="text-gray-400 text-sm capitalize">{fechaHoyFormateada}</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-white font-bold text-lg">{proximoEntrenamiento.workoutName}</h4>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="flex items-center gap-1.5 text-blue-400">
+                      <Clock size={14} />
+                      {proximoEntrenamiento.workoutDuration} min
+                    </span>
+                  </div>
                 </div>
                 <Badge variant={proximoEntrenamiento.workoutCategory}>
                   {proximoEntrenamiento.workoutCategory}
                 </Badge>
               </div>
               
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center gap-3 text-gray-400 text-sm">
-                  <Target size={16} />
-                  <span>{proximoEntrenamiento.workoutName}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-400 text-sm">
-                  <Clock size={16} />
-                  <span>{proximoEntrenamiento.workoutDuration} minutos</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <Button 
-                  className="w-full" 
-                  size="lg"
+                  variant="primary"
+                  className="w-full"
                   onClick={() => {
-                    const rutinaCompleta = WORKOUTS.find(w => w.name === proximoEntrenamiento.workoutName) || {
+                    const rutinaCompleta = workouts.find(w => w.name === proximoEntrenamiento.workoutName) || {
                       ...proximoEntrenamiento,
                       name: proximoEntrenamiento.workoutName,
                       category: proximoEntrenamiento.workoutCategory,
@@ -143,69 +141,124 @@ export default function Home() {
                     iniciarEntrenamiento(rutinaCompleta, proximoEntrenamiento.id);
                   }}
                 >
-                  <Play size={20} className="mr-2" />
-                  Iniciar Entrenamiento
+                  <Play size={16} className="mr-1" />
+                  Iniciar
                 </Button>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="secondary"
-                    size="md"
-                    onClick={() => {
-                      completeScheduledWorkout(proximoEntrenamiento.id);
-                      alert('¡Entrenamiento completado! 🎉');
-                    }}
-                  >
-                    <CheckCircle size={18} className="mr-1" />
-                    Completar
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="md"
-                    onClick={() => navigate('/usuario/rutinas')}
-                  >
-                    Ver Rutinas
-                  </Button>
-                </div>
+                <Button 
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => {
+                    completeScheduledWorkout(proximoEntrenamiento.id);
+                    alert('¡Entrenamiento completado! 🎉');
+                  }}
+                >
+                  <CheckCircle size={16} className="mr-1" />
+                  Completar
+                </Button>
               </div>
             </>
           ) : (
-            <>
-              <div className="text-center py-6">
-                <Calendar size={48} className="mx-auto text-gray-600 mb-4" />
-                <h3 className="text-white font-bold text-lg mb-2">Sin entrenamientos hoy</h3>
-                <p className="text-gray-400 text-sm mb-4">¡Programá una rutina para hoy!</p>
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate('/usuario/rutinas')}
-                >
-                  Ver Rutinas
-                </Button>
-              </div>
-            </>
+            <div className="text-center py-4">
+              <Calendar size={40} className="mx-auto text-gray-600 mb-3" />
+              <p className="text-gray-400 text-sm mb-3">No tenés entrenamientos programados para hoy</p>
+              <Button 
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('/usuario/rutinas')}
+              >
+                Ver Rutinas
+              </Button>
+            </div>
           )}
         </Card>
+      </div>
 
-        {/* Progreso Semanal */}
-        <Card className="backdrop-blur-sm bg-pulso-negroSec/80">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold text-lg">Progreso Semanal</h3>
-            <TrendingUp className="text-green-500" size={20} />
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Entrenamientos completados</span>
-              <span className="text-white font-bold">{getWeekCompleted()}/6</span>
+      {/* Acceso rápido */}
+      <div>
+        <h3 className="text-white font-semibold mb-3">Acceso Rápido</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Card 
+            className="cursor-pointer hover:border-pulso-rojo/50 transition-all"
+            onClick={() => navigate('/usuario/rutinas')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-pulso-rojo/10 p-2.5 rounded-xl">
+                <Target className="text-pulso-rojo" size={20} />
+              </div>
+              <div>
+                <p className="text-white font-medium">Rutinas</p>
+                <p className="text-gray-500 text-xs">{workouts.length} disponibles</p>
+              </div>
             </div>
-            <div className="w-full bg-gray-800 rounded-full h-2">
-              <div 
-                className="bg-pulso-rojo h-2 rounded-full transition-all" 
-                style={{ width: `${Math.min((getWeekCompleted() / 6) * 100, 100)}%` }}
-              ></div>
+          </Card>
+          
+          <Card 
+            className="cursor-pointer hover:border-pulso-rojo/50 transition-all"
+            onClick={() => navigate('/usuario/calendario')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-500/10 p-2.5 rounded-xl">
+                <Calendar className="text-blue-500" size={20} />
+              </div>
+              <div>
+                <p className="text-white font-medium">Calendario</p>
+                <p className="text-gray-500 text-xs">Programar</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card 
+            className="cursor-pointer hover:border-pulso-rojo/50 transition-all"
+            onClick={() => navigate('/usuario/progreso')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500/10 p-2.5 rounded-xl">
+                <TrendingUp className="text-green-500" size={20} />
+              </div>
+              <div>
+                <p className="text-white font-medium">Progreso</p>
+                <p className="text-gray-500 text-xs">Estadísticas</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card 
+            className="cursor-pointer hover:border-pulso-rojo/50 transition-all"
+            onClick={() => navigate('/usuario/perfil')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-500/10 p-2.5 rounded-xl">
+                <Award className="text-purple-500" size={20} />
+              </div>
+              <div>
+                <p className="text-white font-medium">Medallas</p>
+                <p className="text-gray-500 text-xs">Ver logros</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Motivación basada en racha */}
+      {getStreak() > 0 && (
+        <Card className="bg-gradient-to-r from-orange-500/10 to-pulso-rojo/10 border-orange-500/30">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">🔥</span>
+            <div>
+              <p className="text-white font-semibold">
+                {getStreak() >= 7 
+                  ? '¡Increíble racha!' 
+                  : getStreak() >= 3 
+                    ? '¡Vas muy bien!' 
+                    : '¡Buen comienzo!'}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {getStreak()} {getStreak() === 1 ? 'día' : 'días'} consecutivos entrenando
+              </p>
             </div>
           </div>
         </Card>
-      </div>
+      )}
     </div>
   );
 }

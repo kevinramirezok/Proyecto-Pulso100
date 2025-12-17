@@ -1,8 +1,9 @@
-export default function Card({ children, className = '' }) {
+export default function Card({ children, className = '', onClick }) {
   return (
     <div
       className={`bg-pulso-negroSec border border-gray-800 rounded-xl shadow-lg p-6 ${className}`}
       style={{ padding: '1.5rem' }}
+      onClick={onClick}
     >
       {children}
       <style>{`
