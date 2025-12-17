@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
-import { Plus, Edit, Trash2, Youtube, Dumbbell } from 'lucide-react';
+import { Plus, Edit, Trash2, Youtube, Dumbbell, Search } from 'lucide-react';
 
 const MUSCLE_GROUPS = [
   'piernas', 'pecho', 'espalda', 'hombros', 'biceps', 'triceps', 'core', 'cardio', 'otro'
@@ -22,6 +22,9 @@ export default function Ejercicios() {
     videoUrl: '',
     muscleGroup: 'otro'
   });
+  // Estados para búsqueda y filtro
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterMuscle, setFilterMuscle] = useState('todos');
 
   const openCreateModal = () => {
     setEditingExercise(null);
@@ -85,10 +88,25 @@ export default function Ejercicios() {
     }
   };
 
+  // Filtrado de ejercicios y stats
+  const filteredExercises = exercises.filter(ex => {
+    const matchesSearch = ex.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMuscle = filterMuscle === 'todos' || ex.muscle_group === filterMuscle;
+    return matchesSearch && matchesMuscle;
+  });
+
+  const stats = {
+    total: exercises.length,
+    withVideo: exercises.filter(e => e.video_url).length
+  };
+
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-400">Cargando ejercicios...</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-pulso-rojo border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando ejercicios...</p>
+        </div>
       </div>
     );
   }
@@ -96,56 +114,139 @@ export default function Ejercicios() {
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-white">Ejercicios</h1>
-          <p className="text-gray-400">Biblioteca de ejercicios ({exercises.length})</p>
+          <h1 className="text-3xl font-bold text-white mb-1">Ejercicios</h1>
+          <p className="text-gray-400">Biblioteca de ejercicios</p>
         </div>
         <Button onClick={openCreateModal}>
           <Plus size={20} className="mr-2" />
-          Nuevo
+          Nuevo Ejercicio
         </Button>
       </div>
 
-      {/* Lista de ejercicios */}
-      <div className="space-y-3">
-        {exercises.length === 0 ? (
-          <Card className="text-center py-12">
-            <Dumbbell className="mx-auto mb-4 text-gray-500" size={48} />
-            <p className="text-gray-400">No hay ejercicios creados</p>
-            <Button className="mt-4" onClick={openCreateModal}>
-              Crear primer ejercicio
-            </Button>
-          </Card>
-        ) : (
-          exercises.map((exercise) => (
-            <Card key={exercise.id} className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-white font-semibold">{exercise.name}</h3>
-                  {exercise.video_url && (
-                    <Youtube size={16} className="text-red-500" />
-                  )}
-                </div>
-                <p className="text-gray-400 text-sm">{exercise.description || 'Sin descripción'}</p>
-                <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded mt-1 inline-block">
-                  {exercise.muscle_group || 'otro'}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={() => openEditModal(exercise)}>
-                  <Edit size={16} />
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleDelete(exercise)}>
-                  <Trash2 size={16} className="text-red-500" />
-                </Button>
-              </div>
-            </Card>
-          ))
-        )}
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white">{stats.total}</p>
+            <p className="text-gray-400 text-sm">Total ejercicios</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-3xl font-bold text-green-500">{stats.withVideo}</p>
+            <p className="text-gray-400 text-sm">Con video</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-3xl font-bold text-orange-500">{stats.total - stats.withVideo}</p>
+            <p className="text-gray-400 text-sm">Sin video</p>
+          </div>
+        </Card>
       </div>
 
-      {/* Modal Crear/Editar */}
+      {/* Buscador y filtros */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+          <input
+            type="text"
+            placeholder="Buscar ejercicio..."
+            className="w-full bg-pulso-negroSec border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-pulso-rojo"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select
+          className="bg-pulso-negroSec border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pulso-rojo"
+          value={filterMuscle}
+          onChange={(e) => setFilterMuscle(e.target.value)}
+        >
+          <option value="todos">Todos los músculos</option>
+          {MUSCLE_GROUPS.map((group) => (
+            <option key={group} value={group}>
+              {group.charAt(0).toUpperCase() + group.slice(1)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Lista de ejercicios */}
+      <Card className="overflow-hidden p-0">
+        {filteredExercises.length === 0 ? (
+          <div className="text-center py-12">
+            <Dumbbell className="mx-auto mb-4 text-gray-500" size={48} />
+            <p className="text-gray-400 mb-4">
+              {searchTerm || filterMuscle !== 'todos' 
+                ? 'No se encontraron ejercicios con esos filtros' 
+                : 'No hay ejercicios creados'}
+            </p>
+            {!searchTerm && filterMuscle === 'todos' && (
+              <Button onClick={openCreateModal}>
+                Crear primer ejercicio
+              </Button>
+            )}
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-800/50">
+              <tr className="text-left text-sm text-gray-400">
+                <th className="py-3 px-4 font-medium">Nombre</th>
+                <th className="py-3 px-4 font-medium text-center w-20">Video</th>
+                <th className="py-3 px-4 font-medium w-32">Músculo</th>
+                <th className="py-3 px-4 font-medium w-28 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {filteredExercises.map((exercise) => (
+                <tr key={exercise.id} className="hover:bg-gray-800/30 transition-colors">
+                  <td className="py-3 px-4">
+                    <div>
+                      <p className="text-white font-medium">{exercise.name}</p>
+                      <p className="text-gray-500 text-sm truncate max-w-xs">
+                        {exercise.description || 'Sin descripción'}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    {exercise.video_url ? (
+                      <Youtube size={18} className="text-red-500 inline-block" />
+                    ) : (
+                      <span className="text-gray-600">—</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded capitalize">
+                      {exercise.muscle_group || 'otro'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => openEditModal(exercise)}>
+                        <Edit size={14} />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(exercise)}>
+                        <Trash2 size={14} className="text-red-500" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      {/* Contador de resultados */}
+      {(searchTerm || filterMuscle !== 'todos') && filteredExercises.length > 0 && (
+        <p className="text-gray-500 text-sm text-center">
+          Mostrando {filteredExercises.length} de {exercises.length} ejercicios
+        </p>
+      )}
+
+      {/* Modal Crear/Editar - DEJAR IGUAL, NO MODIFICAR */}
       <Modal
         isOpen={showModal}
         onClose={closeModal}

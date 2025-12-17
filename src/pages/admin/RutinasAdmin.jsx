@@ -275,19 +275,27 @@ export default function RutinasAdmin() {
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Duración (min)</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setFormData({ ...formData, duration: val ? parseInt(val) : '' });
+                  }}
                 />
               </div>
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Calorías</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
                   value={formData.calories}
-                  onChange={(e) => setFormData({ ...formData, calories: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setFormData({ ...formData, calories: val ? parseInt(val) : '' });
+                  }}
                 />
               </div>
             </div>

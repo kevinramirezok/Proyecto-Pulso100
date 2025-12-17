@@ -1,52 +1,64 @@
-// src/pages/usuario/Calendario.jsx
 import { useState } from 'react';
 import { useSchedule } from '../../context/ScheduleContext';
-import { WORKOUTS, CATEGORIES } from '../../data/mockWorkouts';
+import { useWorkouts } from '../../context/WorkoutContext';
 import CalendarioCustom from '../../components/calendar/CalendarioCustom';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
-import { CheckCircle, Trash2, Clock, Plus, Dumbbell, ArrowLeft, Flame, Filter } from 'lucide-react';
+import { CheckCircle, Trash2, Clock, Plus, Dumbbell, ArrowLeft, Flame, X, Search, Play } from 'lucide-react';
+import { useEntrenamiento } from '../../context/EntrenamientoContext';
+
+const CATEGORIES = [
+  { key: 'all', label: 'Todas' },
+  { key: 'fuerza', label: 'Fuerza' },
+  { key: 'running', label: 'Running' },
+  { key: 'bicicleta', label: 'Bicicleta' },
+  { key: 'natacion', label: 'Natación' },
+  { key: 'otro', label: 'Otro' },
+];
 
 export default function Calendario() {
   const { scheduledWorkouts, scheduleWorkout, completeScheduledWorkout, deleteScheduledWorkout } = useSchedule();
+  const { workouts, loading } = useWorkouts();
+  const { iniciarEntrenamiento } = useEntrenamiento();
   
-  // Estados del modal principal (día seleccionado)
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
-  
-  // Estado del modal de detalle de entrenamiento
   const [selectedWorkout, setSelectedWorkout] = useState(null);
-  
-  // Estado para agregar entrenamiento
   const [showAddWorkout, setShowAddWorkout] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleDayClick = (fecha, workouts) => {
+  // Stats del mes actual
+  const hoy = new Date();
+  const entrenamientosMes = scheduledWorkouts.filter(w => {
+    const fecha = new Date(w.scheduledDate);
+    return fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
+  });
+  const completadosMes = entrenamientosMes.filter(w => w.status === 'completed').length;
+
+  const handleDayClick = (fecha, workoutsDelDia) => {
     setSelectedDate(fecha);
-    setSelectedWorkouts(workouts);
+    setSelectedWorkouts(workoutsDelDia);
     setShowAddWorkout(false);
     setFilterCategory('all');
+    setSearchTerm('');
   };
 
   const formatearFecha = (fecha) => {
-    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return fecha.toLocaleDateString('es-ES', opciones);
+    return fecha.toLocaleDateString('es-ES', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long' 
+    });
   };
 
   const handleAgregarEntrenamiento = (rutina) => {
-    console.log('=== AGREGANDO ENTRENAMIENTO ===');
-    console.log('Rutina:', rutina);
-    console.log('Fecha seleccionada:', selectedDate);
-    if (!selectedDate) {
-      console.log('ERROR: No hay fecha seleccionada');
-      return;
-    }
+    if (!selectedDate) return;
     
     scheduleWorkout(rutina, selectedDate.toISOString());
-    console.log('Entrenamiento programado!');
-    // Actualizar la lista de workouts del día
+    
     const nuevoWorkout = {
       id: Date.now(),
       workoutId: rutina.id,
@@ -59,6 +71,7 @@ export default function Calendario() {
     
     setSelectedWorkouts(prev => [...prev, nuevoWorkout]);
     setShowAddWorkout(false);
+    setSearchTerm('');
   };
 
   const cerrarModalPrincipal = () => {
@@ -66,27 +79,70 @@ export default function Calendario() {
     setSelectedWorkouts([]);
     setShowAddWorkout(false);
     setFilterCategory('all');
+    setSearchTerm('');
   };
 
-  // Filtrar rutinas por categoría
-  const rutinasFiltradas = filterCategory === 'all' 
-    ? WORKOUTS 
-    : WORKOUTS.filter(w => w.category === filterCategory);
+  // Filtrar rutinas
+  const rutinasFiltradas = workouts.filter(w => {
+    const matchesCategory = filterCategory === 'all' || w.category === filterCategory;
+    const matchesSearch = w.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Loading profesional
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-pulso-rojo border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando calendario...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-24">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Calendario</h1>
-        <p className="text-gray-400">Organizá tus entrenamientos</p>
+      {/* Header con stats */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-1">Calendario</h1>
+          <p className="text-gray-400 text-sm">Organizá tus entrenamientos</p>
+        </div>
+        <div className="bg-green-500/10 px-4 py-2 rounded-xl text-center">
+          <p className="text-green-500 text-2xl font-bold">{completadosMes}</p>
+          <p className="text-gray-400 text-xs">Este mes</p>
+        </div>
       </div>
 
-      {/* Leyenda */}
-      <div className="flex gap-2 flex-wrap">
-        <Badge variant="bicicleta">Bicicleta</Badge>
-        <Badge variant="running">Running</Badge>
-        <Badge variant="fuerza">Fuerza</Badge>
-        <Badge variant="natacion">Natación</Badge>
-        <Badge variant="otro">Otro</Badge>
+      {/* Stats rápidos */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-500/10 p-2 rounded-lg">
+                <Dumbbell className="text-blue-500" size={18} />
+              </div>
+              <div>
+                <p className="text-white font-bold">{entrenamientosMes.length}</p>
+                <p className="text-gray-500 text-xs">Programados</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card className="py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500/10 p-2 rounded-lg">
+                <CheckCircle className="text-green-500" size={18} />
+              </div>
+              <div>
+                <p className="text-white font-bold">{completadosMes}</p>
+                <p className="text-gray-500 text-xs">Completados</p>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Calendario */}
@@ -101,29 +157,49 @@ export default function Calendario() {
         onClose={cerrarModalPrincipal}
         title={selectedDate ? formatearFecha(selectedDate) : ''}
       >
-        {/* Vista: Seleccionar rutina para agregar */}
         {showAddWorkout ? (
           <div className="space-y-4">
             <button
-              onClick={() => setShowAddWorkout(false)}
+              onClick={() => {
+                setShowAddWorkout(false);
+                setSearchTerm('');
+              }}
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={18} />
               <span>Volver</span>
             </button>
             
-            <h4 className="text-white font-bold text-lg">Elegí una rutina:</h4>
+            {/* Buscador */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar rutina..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 bg-pulso-negro border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-pulso-rojo"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
             
-            {/* Filtro por categoría */}
-            <div className="flex gap-2 flex-wrap">
+            {/* Filtros */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.key}
                   onClick={() => setFilterCategory(cat.key)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                     filterCategory === cat.key
                       ? 'bg-pulso-rojo text-white'
-                      : 'bg-pulso-negro text-gray-400 hover:text-white'
+                      : 'bg-pulso-negro text-gray-400 hover:text-white border border-gray-700'
                   }`}
                 >
                   {cat.label}
@@ -131,95 +207,90 @@ export default function Calendario() {
               ))}
             </div>
             
-            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
-              {rutinasFiltradas.map((rutina) => (
-                <div
-                  key={rutina.id}
-                  onClick={() => {
-                    console.log('Click en rutina:', rutina.name);
-                    handleAgregarEntrenamiento(rutina);
-                  }}
-                  className="bg-pulso-negro p-4 rounded-xl cursor-pointer hover:border hover:border-pulso-rojo/50 transition-all active:scale-[0.98]"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h5 className="text-white font-semibold">{rutina.name}</h5>
-                      <p className="text-gray-500 text-xs mt-1 line-clamp-1">{rutina.description}</p>
-                      <div className="flex items-center gap-4 text-gray-400 text-sm mt-2">
-                        <span className="flex items-center gap-1">
-                          <Clock size={14} />
-                          {rutina.duration} min
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Flame size={14} className="text-orange-500" />
-                          {rutina.calories} kcal
-                        </span>
+            {/* Lista de rutinas */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {rutinasFiltradas.length === 0 ? (
+                <p className="text-gray-500 text-center py-6 text-sm">No se encontraron rutinas</p>
+              ) : (
+                rutinasFiltradas.map((rutina) => (
+                  <div
+                    key={rutina.id}
+                    onClick={() => handleAgregarEntrenamiento(rutina)}
+                    className="bg-pulso-negro p-3 rounded-xl cursor-pointer hover:border hover:border-pulso-rojo/50 border border-transparent transition-all"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium text-sm truncate">{rutina.name}</p>
+                        <div className="flex items-center gap-3 text-gray-500 text-xs mt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} />
+                            {rutina.duration} min
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Dumbbell size={12} />
+                            {rutina.exercises?.length || 0}
+                          </span>
+                        </div>
                       </div>
+                      <Badge variant={rutina.category}>{rutina.category}</Badge>
                     </div>
-                    <Badge variant={rutina.category}>{rutina.category}</Badge>
                   </div>
-                </div>
-              ))}
-              
-              {rutinasFiltradas.length === 0 && (
-                <p className="text-gray-500 text-center py-8">No hay rutinas en esta categoría</p>
+                ))
               )}
             </div>
           </div>
         ) : (
-          /* Vista: Lista de entrenamientos del día */
           <>
             {selectedWorkouts.length === 0 ? (
-              <div className="text-center py-12">
-                <Dumbbell size={48} className="mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400 mb-6">No hay entrenamientos programados</p>
+              <div className="text-center py-8">
+                <Dumbbell size={40} className="mx-auto text-gray-600 mb-3" />
+                <p className="text-gray-400 text-sm mb-4">Sin entrenamientos programados</p>
                 <Button 
-                  variant="primary" 
-                  className="mx-auto"
+                  variant="primary"
+                  size="sm"
                   onClick={() => setShowAddWorkout(true)}
                 >
-                  <Plus size={20} className="mr-2" />
-                  Agregar Entrenamiento
+                  <Plus size={16} className="mr-1" />
+                  Agregar
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {selectedWorkouts.map((workout) => (
                   <div
                     key={workout.id}
-                    onClick={() => {
-                      console.log('Click en workout:', workout.workoutName);
-                      setSelectedWorkout(workout);
-                    }}
-                    className="bg-pulso-negro border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-pulso-rojo/50 transition-all"
+                    onClick={() => setSelectedWorkout(workout)}
+                    className={`p-3 rounded-xl cursor-pointer transition-all border ${
+                      workout.status === 'completed'
+                        ? 'bg-green-500/5 border-green-500/30'
+                        : 'bg-pulso-negro border-gray-800 hover:border-pulso-rojo/50'
+                    }`}
                   >
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-center">
                       <div className="flex-1">
-                        <h4 className="text-white font-bold mb-1">{workout.workoutName}</h4>
-                        <div className="flex items-center gap-2 text-gray-400 text-sm">
-                          <Clock size={14} />
-                          <span>{workout.workoutDuration} min</span>
+                        <div className="flex items-center gap-2">
+                          <p className="text-white font-medium text-sm">{workout.workoutName}</p>
+                          {workout.status === 'completed' && (
+                            <CheckCircle className="text-green-500" size={14} />
+                          )}
                         </div>
+                        <p className="text-gray-500 text-xs mt-0.5">
+                          {workout.workoutDuration} min • {workout.status === 'completed' ? 'Completado' : 'Pendiente'}
+                        </p>
                       </div>
                       <Badge variant={workout.workoutCategory}>{workout.workoutCategory}</Badge>
-                    </div>
-
-                    <div className={`text-sm font-semibold ${
-                      workout.status === 'completed' ? 'text-green-500' : 'text-yellow-500'
-                    }`}>
-                      {workout.status === 'completed' ? '✅ Completado' : '⏳ Pendiente'}
                     </div>
                   </div>
                 ))}
                 
-                {/* Botón para agregar más */}
                 <Button 
-                  variant="outline" 
-                  className="w-full mt-4"
+                  variant="secondary" 
+                  className="w-full"
+                  size="sm"
                   onClick={() => setShowAddWorkout(true)}
                 >
-                  <Plus size={18} className="mr-2" />
-                  Agregar otro entrenamiento
+                  <Plus size={14} className="mr-1" />
+                  Agregar otro
                 </Button>
               </div>
             )}
@@ -234,71 +305,82 @@ export default function Calendario() {
         title={selectedWorkout?.workoutName}
       >
         {selectedWorkout && (
-          <div className="space-y-6">
-            <Badge variant={selectedWorkout.workoutCategory}>
-              {selectedWorkout.workoutCategory}
-            </Badge>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Badge variant={selectedWorkout.workoutCategory}>{selectedWorkout.workoutCategory}</Badge>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                selectedWorkout.status === 'completed' 
+                  ? 'bg-green-500/20 text-green-500' 
+                  : 'bg-yellow-500/20 text-yellow-500'
+              }`}>
+                {selectedWorkout.status === 'completed' ? 'Completado' : 'Pendiente'}
+              </span>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-pulso-negro rounded-lg p-4">
-                <Clock className="text-blue-400 mb-2" size={20} />
-                <p className="text-gray-400 text-xs mb-1">Duración</p>
-                <p className="text-white font-bold">{selectedWorkout.workoutDuration} min</p>
-              </div>
-              
-              <div className="bg-pulso-negro rounded-lg p-4">
-                <p className="text-gray-400 text-xs mb-1">Estado</p>
-                <p className={`font-bold ${
-                  selectedWorkout.status === 'completed' ? 'text-green-500' : 'text-yellow-500'
-                }`}>
-                  {selectedWorkout.status === 'completed' ? '✅ Completado' : '⏳ Pendiente'}
-                </p>
+            <div className="flex items-center justify-around py-3 bg-pulso-negro rounded-xl">
+              <div className="text-center">
+                <p className="text-white font-bold text-lg">{selectedWorkout.workoutDuration}</p>
+                <p className="text-gray-500 text-xs">minutos</p>
               </div>
             </div>
 
             {selectedWorkout.status === 'pending' ? (
-              <div className="space-y-3 pt-4">
+              <div className="space-y-2 pt-2">
                 <Button
                   variant="primary"
-                  size="lg"
                   className="w-full"
                   onClick={() => {
-                    completeScheduledWorkout(selectedWorkout.id);
-                    setSelectedWorkouts(prev => 
-                      prev.map(w => w.id === selectedWorkout.id 
-                        ? { ...w, status: 'completed' } 
-                        : w
-                      )
-                    );
-                    setSelectedWorkout(null);
-                  }}
-                >
-                  <CheckCircle size={20} className="mr-2" />
-                  Marcar como Completado
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="w-full"
-                  onClick={() => {
-                    if (confirm('¿Eliminar este entrenamiento programado?')) {
-                      deleteScheduledWorkout(selectedWorkout.id);
-                      setSelectedWorkouts(prev => 
-                        prev.filter(w => w.id !== selectedWorkout.id)
-                      );
+                    const rutinaCompleta = workouts.find(w => w.name === selectedWorkout.workoutName);
+                    if (rutinaCompleta) {
                       setSelectedWorkout(null);
+                      cerrarModalPrincipal();
+                      iniciarEntrenamiento(rutinaCompleta, selectedWorkout.id);
                     }
                   }}
                 >
-                  <Trash2 size={18} className="mr-2" />
-                  Eliminar
+                  <Play size={16} className="mr-1" />
+                  Iniciar Entrenamiento
                 </Button>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      completeScheduledWorkout(selectedWorkout.id);
+                      setSelectedWorkouts(prev => 
+                        prev.map(w => w.id === selectedWorkout.id 
+                          ? { ...w, status: 'completed' } 
+                          : w
+                        )
+                      );
+                      setSelectedWorkout(null);
+                    }}
+                  >
+                    <CheckCircle size={14} className="mr-1" />
+                    Completar
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (confirm('¿Eliminar este entrenamiento?')) {
+                        deleteScheduledWorkout(selectedWorkout.id);
+                        setSelectedWorkouts(prev => 
+                          prev.filter(w => w.id !== selectedWorkout.id)
+                        );
+                        setSelectedWorkout(null);
+                      }
+                    }}
+                  >
+                    <Trash2 size={14} className="mr-1" />
+                    Eliminar
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-                <CheckCircle className="text-green-500 mx-auto mb-2" size={32} />
-                <p className="text-green-500 font-semibold">¡Entrenamiento completado!</p>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
+                <CheckCircle className="text-green-500 mx-auto mb-2" size={24} />
+                <p className="text-green-400 text-sm font-medium">¡Entrenamiento completado!</p>
               </div>
             )}
           </div>
