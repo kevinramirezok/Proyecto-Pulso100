@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import { useSchedule } from '../../context/ScheduleContext';
+import { useProgress } from '../../hooks/useProgress';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -10,28 +11,42 @@ import { useEntrenamiento } from '../../context/EntrenamientoContext';
 
 export default function Home() {
   const { user } = useAuth();
-  const { scheduledWorkouts, completeScheduledWorkout, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
+  const { scheduledWorkouts, loading: scheduleLoading } = useSchedule();
+  const { stats } = useProgress();
   const navigate = useNavigate();
   const { iniciarEntrenamiento } = useEntrenamiento();
-  const { workouts, loading } = useWorkouts();
+  const { workouts, loading: workoutsLoading } = useWorkouts();
 
   // Obtener entrenamientos de hoy pendientes
-  const hoy = new Date();
+  const hoy = new Date().toISOString().split('T')[0];
   const entrenamientosHoy = scheduledWorkouts.filter(w => {
-    const fechaWorkout = new Date(w.scheduledDate);
-    return fechaWorkout.toDateString() === hoy.toDateString() && w.status === 'pending';
+    return w.scheduled_date === hoy && w.status === 'pendiente';
   });
   const proximoEntrenamiento = entrenamientosHoy[0];
 
   // Formatear fecha de hoy
-  const fechaHoyFormateada = hoy.toLocaleDateString('es-ES', { 
+  const fechaHoyFormateada = new Date().toLocaleDateString('es-ES', { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long' 
   });
 
+  // Calcular semana actual
+  const getWeekCompleted = () => {
+    const hoy = new Date();
+    const inicioSemana = new Date(hoy);
+    const dia = hoy.getDay();
+    const diff = dia === 0 ? 6 : dia - 1;
+    inicioSemana.setDate(hoy.getDate() - diff);
+    const inicioStr = inicioSemana.toISOString().split('T')[0];
+
+    return scheduledWorkouts.filter(w => 
+      w.scheduled_date >= inicioStr && w.status === 'completado'
+    ).length;
+  };
+
   // Loading profesional
-  if (loading) {
+  if (workoutsLoading || scheduleLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -48,10 +63,10 @@ export default function Home() {
       <div className="flex justify-between items-start">
         <div>
           <p className="text-gray-500 text-sm capitalize">{fechaHoyFormateada}</p>
-          <h1 className="text-3xl font-bold text-white mt-1">Hola, {user?.name}! 👋</h1>
+          <h1 className="text-3xl font-bold text-white mt-1">Hola, {user?.user_metadata?.name || 'Atleta'}! 👋</h1>
         </div>
         <div className="bg-pulso-rojo/10 px-4 py-2 rounded-xl text-center">
-          <p className="text-pulso-rojo text-2xl font-bold">{getStreak()}</p>
+          <p className="text-pulso-rojo text-2xl font-bold">{stats.streak}</p>
           <p className="text-gray-400 text-xs">🔥 Racha</p>
         </div>
       </div>
@@ -70,7 +85,7 @@ export default function Home() {
           <div className="bg-blue-500/10 w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2">
             <CheckCircle className="text-blue-500" size={20} />
           </div>
-          <p className="text-white text-xl font-bold">{getTotalCompleted()}</p>
+          <p className="text-white text-xl font-bold">{stats.totalCompleted}</p>
           <p className="text-gray-500 text-xs">Total</p>
         </Card>
         
@@ -240,20 +255,20 @@ export default function Home() {
       </div>
 
       {/* Motivación basada en racha */}
-      {getStreak() > 0 && (
+      {stats.streak > 0 && (
         <Card className="bg-gradient-to-r from-orange-500/10 to-pulso-rojo/10 border-orange-500/30">
           <div className="flex items-center gap-3">
             <span className="text-3xl">🔥</span>
             <div>
               <p className="text-white font-semibold">
-                {getStreak() >= 7 
+                {stats.streak >= 7 
                   ? '¡Increíble racha!' 
-                  : getStreak() >= 3 
+                  : stats.streak >= 3 
                     ? '¡Vas muy bien!' 
                     : '¡Buen comienzo!'}
               </p>
               <p className="text-gray-400 text-sm">
-                {getStreak()} {getStreak() === 1 ? 'día' : 'días'} consecutivos entrenando
+                {stats.streak} {stats.streak === 1 ? 'día' : 'días'} consecutivos entrenando
               </p>
             </div>
           </div>
