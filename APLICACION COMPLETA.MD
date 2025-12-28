@@ -83,46 +83,53 @@
 ---
 
 
-### 📅 Semana 4: Progreso + Gamificación (22-28 Dic) ⏳ EN PROGRESO
+### 📅 Semana 4: Progreso + Gamificación (22-28 Dic) ✅ COMPLETADA
 **Entregables:**
 - Gráficos de progreso (Recharts) en Progreso.jsx: entrenamientos últimos 7 días (barras), minutos por semana (área), calorías por semana (línea), distribución por categoría, stats cards, total completados
-- Adherencia mensual (pendiente)
 - Contador de entrenamientos (ScheduleContext)
 - Funcionalidad Iniciar Entrenamiento: Timer, ejercicios, calorías estimadas y registro automático
-- Sistema de Medallas: Visualización y lógica de medallas/logros en Progreso.jsx
-- Performance Metrics (pendiente)
-- Perfil Usuario (pendiente)
+- Sistema de Medallas: 14 medallas implementadas con lógica de desbloqueo automático en Progreso.jsx
+- Hook useProgress.js: Gestión centralizada de stats, medallas y progreso con carga optimizada
+- Perfil Usuario: Vista completa con estadísticas personales, nivel, medallas y categorías
+- Integración completa de WorkoutContext y ScheduleContext
 
-**Checkpoint:** Usuario ve su progreso con gráficos, estadísticas, medallas y puede iniciar entrenamientos
-**Pendiente:** Performance Metrics, Adherencia mensual, Perfil Usuario
-
----
-
-
-
-### 📅 Semana 5: Integración Supabase (29 Dic - 4 Ene) ⏳ PENDIENTE
-**Entregables:**
-- Conexión inicial a Supabase
-- CRUD de rutinas y ejercicios desde Admin (pendiente)
-- Reemplazo de datos mock por datos reales (pendiente)
-- Autenticación real con Supabase Auth (pendiente)
-
-**Checkpoint:** App conectada a base de datos real (pendiente)
-**Estado:** Solo estructura base
+**Checkpoint:** Usuario ve su progreso con gráficos, estadísticas, medallas y puede iniciar entrenamientos ✅
+**Pendiente:** Performance Metrics detallados, Adherencia mensual (opcional)
 
 ---
 
 
-### 📅 Semana 6: Vista Admin + Integración (5-11 Ene) ⏳ PENDIENTE
-**Entregables:**
-- Dashboard Admin: UI base creada, sin funcionalidad
-- Gestión de Usuarios: lista, crear/editar/eliminar, asignar entrenadora, ver calendario del usuario (pendiente)
-- Gestión de Entrenadores: lista, crear/editar/eliminar, ver usuarios asignados (pendiente)
-- Configuración del Sistema: categorías de rutinas, niveles de dificultad, sistema de medallas, configuración de calendario (pendiente)
-- Integración completa entre roles (pendiente)
 
-**Checkpoint:** Admin puede gestionar todo el sistema (pendiente)
-**Estado:** Solo estructura base
+### 📅 Semana 5: Integración Supabase (29 Dic - 4 Ene) ✅ COMPLETADA (~95%)
+**Entregables:**
+- Conexión completa a Supabase con cliente configurado (lib/supabase.js)
+- Base de datos: 7 tablas creadas (exercises, workouts, workout_exercises, scheduled_workouts, completed_workouts, medals, user_medals)
+- Services implementados: workoutService, progressService, medalService, scheduleService
+- Migración completa de localStorage a PostgreSQL
+- Autenticación real con Supabase Auth funcionando (AuthContext actualizado)
+- 15 ejercicios, 5 rutinas y 5 medallas cargadas en BD
+- Sistema de CASCADE y constraints configurado
+- Queries optimizadas con límites y carga paralela
+
+**Checkpoint:** App 100% conectada a base de datos real, sin localStorage ✅
+**Pendiente:** Activar RLS para producción, CRUD visual desde Admin
+
+---
+
+
+### 📅 Semana 6: Vista Admin + Integración (5-11 Ene) ⏳ EN PROGRESO (~30%)
+**Entregables:**
+- Dashboard Admin: UI base creada con métricas visuales
+- Ejercicios.jsx: Página de gestión creada (estructura lista para CRUD)
+- RutinasAdmin.jsx: Página de gestión creada (estructura lista para CRUD)
+- Usuarios.jsx: Página creada con tabla base
+- Gestión de Usuarios: lista, crear/editar/eliminar, asignar entrenadora, ver calendario del usuario (pendiente funcionalidad)
+- Gestión de Entrenadores: (pendiente)
+- Configuración del Sistema: categorías de rutinas, niveles de dificultad, sistema de medallas (pendiente)
+- Integración completa entre roles (en progreso)
+
+**Checkpoint:** Admin puede gestionar todo el sistema (parcial)
+**Estado:** Estructura y UI creadas, falta conectar a Supabase
 
 ---
 
@@ -155,7 +162,27 @@
 
 ---
 
-## 🚀 Estructura de Carpetas
+## � Services y Hooks Implementados
+
+### Services Layer (src/services/)
+- **workoutService.js**: CRUD completo de workouts y exercises con joins optimizados
+- **scheduleService.js**: Gestión de calendario (agendar, completar, reprogramar, eliminar)
+- **progressService.js**: Estadísticas, historial, cálculo de rachas, filtros por fecha
+- **medalService.js**: Sistema de logros con verificación automática y desbloqueo
+
+### Custom Hooks (src/hooks/)
+- **useProgress.js**: Hook centralizado de progreso con carga optimizada en 2 fases
+  - Stats: totalCompleted, totalMinutes, totalCalories, streak, avgDuration, avgCalories
+  - Medallas desbloqueadas y progreso hacia siguientes
+  - Auto-refresh cuando cambia el usuario
+  - Estados: loading, error, refreshProgress()
+
+---
+
+
+---
+
+## �🚀 Estructura de Carpetas
 ```text
 pulso100-v2/
 ├── public/
@@ -163,32 +190,27 @@ pulso100-v2/
 ├── src/
 │   ├── components/
 │   │   ├── calendar/
-│   │   │   ├── CalendarView.jsx
-│   │   │   ├── WorkoutEvent.jsx
-│   │   │   ├── DayModal.jsx
-│   │   │   └── CalendarToolbar.jsx
+│   │   │   └── CalendarioCustom.jsx
 │   │   ├── layout/
 │   │   │   ├── LayoutUsuario.jsx
 │   │   │   ├── LayoutAdmin.jsx
-│   │   │   ├── BottomNav.jsx
-│   │   │   └── ThemeSwitcher.jsx
+│   │   │   └── BottomNav.jsx
 │   │   ├── ui/
 │   │   │   ├── Button.jsx
 │   │   │   ├── Card.jsx
 │   │   │   ├── Badge.jsx
 │   │   │   ├── Input.jsx
 │   │   │   ├── Modal.jsx
-│   │   │   └── Select.jsx
+│   │   │   └── MiniCalendario.jsx
 │   │   └── features/
-│   │       ├── PerformanceMetrics.jsx
-│   │       ├── WorkoutCard.jsx
-│   │       ├── ProgressChart.jsx
-│   │       ├── MedalBadge.jsx
-│   │       ├── WorkoutDetail.jsx
-│   │       └── ScheduleWorkout.jsx
+│   │       ├── EntrenamientoActivo.jsx
+│   │       └── MedalCard.jsx
 │   ├── pages/
 │   │   ├── auth/
-│   │   │   └── Login.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── ForgotPassword.jsx
+│   │   │   └── ResetPassword.jsx
 │   │   ├── usuario/
 │   │   │   ├── Home.jsx
 │   │   │   ├── Calendario.jsx
@@ -197,32 +219,37 @@ pulso100-v2/
 │   │   │   └── Perfil.jsx
 │   │   └── admin/
 │   │       ├── Dashboard.jsx
-│   │       └── (CRUD y gestión en desarrollo)
+│   │       ├── Ejercicios.jsx
+│   │       ├── RutinasAdmin.jsx
+│   │       └── Usuarios.jsx
 │   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useTheme.js
-│   │   ├── useWorkouts.js
-│   │   ├── useProgress.js
-│   │   ├── useCalendar.js
-│   │   └── useScheduledWorkouts.js
+│   │   └── useProgress.js
 │   ├── context/
 │   │   ├── AuthContext.jsx
 │   │   ├── ScheduleContext.jsx
 │   │   ├── ThemeContext.jsx
+│   │   ├── WorkoutContext.jsx
 │   │   └── EntrenamientoContext.jsx
+│   ├── services/
+│   │   ├── workoutService.js
+│   │   ├── progressService.js
+│   │   ├── medalService.js
+│   │   └── scheduleService.js
 │   ├── utils/
-│   │   ├── constants.js
-│   │   ├── helpers.js
-│   │   └── dateUtils.js
 │   ├── data/
 │   │   ├── exercises.js
 │   │   ├── mockWorkouts.js
 │   │   └── medals.js
+│   ├── lib/
+│   │   └── supabase.js
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
+├── APLICACION COMPLETA.MD
+├── FASE-1-AUTENTICACION.md
+├── FASE-2-BACKEND-SUPABASE.md
+├── README.md
 ├── tailwind.config.js
 ├── vite.config.js
-├── package.json
-└── README.md
+└── package.json
 ```

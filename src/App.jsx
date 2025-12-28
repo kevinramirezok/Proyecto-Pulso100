@@ -5,6 +5,7 @@ import { ScheduleProvider, useSchedule } from './context/ScheduleContext';
 import { EntrenamientoProvider, useEntrenamiento } from './context/EntrenamientoContext';
 import { WorkoutProvider } from './context/WorkoutContext';
 import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 import EntrenamientoActivo from './components/features/EntrenamientoActivo';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -147,6 +148,13 @@ function App() {
             </Routes>
           </BrowserRouter>
           <EntrenamientoActivoGlobal />
+          <Toaster 
+            position="top-right" 
+            expand={true}
+            richColors
+            closeButton
+            theme="dark"
+          />
         </WorkoutProvider>
       </EntrenamientoProvider>
     </ScheduleProvider>

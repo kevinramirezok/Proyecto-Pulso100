@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useWorkouts } from '../../context/WorkoutContext';
 import { createExercise, updateExercise, deleteExercise } from '../../services/workoutService';
+import { toast } from 'sonner';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
-import { Plus, Edit, Trash2, Youtube, Dumbbell, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Youtube, Dumbbell, Search, Loader2, AlertCircle } from 'lucide-react';
 
 const MUSCLE_GROUPS = [
   'piernas', 'pecho', 'espalda', 'hombros', 'biceps', 'triceps', 'core', 'cardio', 'otro'
@@ -14,8 +15,12 @@ const MUSCLE_GROUPS = [
 export default function Ejercicios() {
   const { exercises, loading, refreshData } = useWorkouts();
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [editingExercise, setEditingExercise] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -29,6 +34,7 @@ export default function Ejercicios() {
   const openCreateModal = () => {
     setEditingExercise(null);
     setFormData({ name: '', description: '', videoUrl: '', muscleGroup: 'otro' });
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -40,6 +46,7 @@ export default function Ejercicios() {
       videoUrl: exercise.video_url || '',
       muscleGroup: exercise.muscle_group || 'otro'
     });
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -47,12 +54,31 @@ export default function Ejercicios() {
     setShowModal(false);
     setEditingExercise(null);
     setFormData({ name: '', description: '', videoUrl: '', muscleGroup: 'otro' });
+    setFormErrors({});
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'El nombre es obligatorio';
+    } else if (formData.name.trim().length < 3) {
+      errors.name = 'El nombre debe tener al menos 3 caracteres';
+    }
+    
+    if (formData.videoUrl && !formData.videoUrl.includes('youtube.com') && !formData.videoUrl.includes('youtu.be')) {
+      errors.videoUrl = 'Debe ser una URL válida de YouTube';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      alert('El nombre es obligatorio');
+    
+    if (!validateForm()) {
+      toast.error('Por favor, corrige los errores del formulario');
       return;
     }
 
@@ -60,31 +86,39 @@ export default function Ejercicios() {
     try {
       if (editingExercise) {
         await updateExercise(editingExercise.id, formData);
-        alert('Ejercicio actualizado correctamente');
+        toast.success('✅ Ejercicio actualizado correctamente');
       } else {
         await createExercise(formData);
-        alert('Ejercicio creado correctamente');
+        toast.success('✅ Ejercicio creado correctamente');
       }
       await refreshData();
       closeModal();
     } catch (error) {
-      alert('Error al guardar: ' + error.message);
+      toast.error('❌ Error al guardar: ' + error.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (exercise) => {
-    if (!confirm(`¿Eliminar "${exercise.name}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+  const confirmDelete = (exercise) => {
+    setExerciseToDelete(exercise);
+    setShowDeleteModal(true);
+  };
 
+  const handleDelete = async () => {
+    if (!exerciseToDelete) return;
+
+    setDeletingId(exerciseToDelete.id);
     try {
-      await deleteExercise(exercise.id);
-      alert('Ejercicio eliminado');
+      await deleteExercise(exerciseToDelete.id);
+      toast.success('✅ Ejercicio eliminado correctamente');
       await refreshData();
+      setShowDeleteModal(false);
+      setExerciseToDelete(null);
     } catch (error) {
-      alert('Error al eliminar: ' + error.message);
+      toast.error('❌ Error al eliminar: ' + error.message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -224,11 +258,26 @@ export default function Ejercicios() {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex justify-end gap-2">
-                      <Button variant="secondary" size="sm" onClick={() => openEditModal(exercise)}>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={() => openEditModal(exercise)}
+                        className="transition-all duration-200 hover:scale-105"
+                      >
                         <Edit size={14} />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(exercise)}>
-                        <Trash2 size={14} className="text-red-500" />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => confirmDelete(exercise)}
+                        disabled={deletingId === exercise.id}
+                        className="transition-all duration-200 hover:scale-105 hover:border-red-500"
+                      >
+                        {deletingId === exercise.id ? (
+                          <Loader2 size={14} className="animate-spin text-red-500" />
+                        ) : (
+                          <Trash2 size={14} className="text-red-500" />
+                        )}
                       </Button>
                     </div>
                   </td>
@@ -246,25 +295,43 @@ export default function Ejercicios() {
         </p>
       )}
 
-      {/* Modal Crear/Editar - DEJAR IGUAL, NO MODIFICAR */}
+      {/* Modal Crear/Editar */}
       <Modal
         isOpen={showModal}
         onClose={closeModal}
         title={editingExercise ? 'Editar Ejercicio' : 'Nuevo Ejercicio'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Nombre *"
-            placeholder="Ej: Sentadillas"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
+          <div>
+            <label className="block text-gray-400 text-sm mb-2">
+              Nombre <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Sentadillas"
+              value={formData.name}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (formErrors.name) setFormErrors({ ...formErrors, name: null });
+              }}
+              className={`w-full bg-pulso-negro border rounded-lg p-3 text-white focus:outline-none transition-colors duration-200 ${
+                formErrors.name 
+                  ? 'border-red-500 focus:border-red-500' 
+                  : 'border-gray-700 focus:border-pulso-rojo'
+              }`}
+            />
+            {formErrors.name && (
+              <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
+                <AlertCircle size={12} />
+                <span>{formErrors.name}</span>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-gray-400 text-sm mb-2">Descripción</label>
             <textarea
-              className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
+              className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo transition-colors duration-200"
               rows={3}
               placeholder="Descripción del ejercicio..."
               value={formData.description}
@@ -272,17 +339,34 @@ export default function Ejercicios() {
             />
           </div>
 
-          <Input
-            label="URL Video YouTube"
-            placeholder="https://youtube.com/watch?v=..."
-            value={formData.videoUrl}
-            onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-          />
+          <div>
+            <label className="block text-gray-400 text-sm mb-2">URL Video YouTube</label>
+            <input
+              type="text"
+              placeholder="https://youtube.com/watch?v=..."
+              value={formData.videoUrl}
+              onChange={(e) => {
+                setFormData({ ...formData, videoUrl: e.target.value });
+                if (formErrors.videoUrl) setFormErrors({ ...formErrors, videoUrl: null });
+              }}
+              className={`w-full bg-pulso-negro border rounded-lg p-3 text-white focus:outline-none transition-colors duration-200 ${
+                formErrors.videoUrl 
+                  ? 'border-red-500 focus:border-red-500' 
+                  : 'border-gray-700 focus:border-pulso-rojo'
+              }`}
+            />
+            {formErrors.videoUrl && (
+              <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
+                <AlertCircle size={12} />
+                <span>{formErrors.videoUrl}</span>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-gray-400 text-sm mb-2">Grupo Muscular</label>
             <select
-              className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
+              className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo transition-colors duration-200"
               value={formData.muscleGroup}
               onChange={(e) => setFormData({ ...formData, muscleGroup: e.target.value })}
             >
@@ -295,14 +379,85 @@ export default function Ejercicios() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" className="flex-1" onClick={closeModal}>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              onClick={closeModal}
+              disabled={saving}
+            >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1" disabled={saving}>
-              {saving ? 'Guardando...' : editingExercise ? 'Actualizar' : 'Crear'}
+            <Button 
+              type="submit" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              disabled={saving}
+            >
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" />
+                  Guardando...
+                </span>
+              ) : (
+                editingExercise ? 'Actualizar' : 'Crear'
+              )}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Confirmación de Eliminación */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setExerciseToDelete(null);
+        }}
+        title="Confirmar Eliminación"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+            <div>
+              <p className="text-white font-medium mb-1">
+                ¿Estás seguro de eliminar este ejercicio?
+              </p>
+              <p className="text-gray-400 text-sm">
+                <span className="text-white font-semibold">"{exerciseToDelete?.name}"</span> será eliminado permanentemente. Esta acción no se puede deshacer.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button 
+              type="button" 
+              variant="secondary" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              onClick={() => {
+                setShowDeleteModal(false);
+                setExerciseToDelete(null);
+              }}
+              disabled={deletingId !== null}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleDelete}
+              disabled={deletingId !== null}
+              className="flex-1 bg-red-600 hover:bg-red-700 transition-all duration-200 hover:scale-105"
+            >
+              {deletingId !== null ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" />
+                  Eliminando...
+                </span>
+              ) : (
+                'Eliminar'
+              )}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

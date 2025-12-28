@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useWorkouts } from '../../context/WorkoutContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { 
@@ -14,26 +14,59 @@ import {
   LogOut,
   BarChart3
 } from 'lucide-react';
+import { getUsers, getWorkouts } from '../../services/workoutService';
+import { getCompletedWorkouts } from '../../services/progressService';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { workouts, exercises, loading } = useWorkouts();
   const navigate = useNavigate();
 
-  // Estadísticas reales
+  // Estados para datos globales
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [workouts, setWorkouts] = useState([]);
+  const [completedCount, setCompletedCount] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const [usersData, workoutsData] = await Promise.all([
+          getUsers(),
+          getWorkouts()
+        ]);
+        let totalCompleted = 0;
+        // Sumar entrenamientos completados de todos los usuarios
+        if (usersData && usersData.length > 0) {
+          // Se puede optimizar con una función agregada en el backend, pero aquí se hace por usuario
+          const completedArrays = await Promise.all(
+            usersData.map(u => getCompletedWorkouts(u.id, 1_000))
+          );
+          totalCompleted = completedArrays.reduce((acc, arr) => acc + (arr?.length || 0), 0);
+        }
+        if (isMounted) {
+          setUsers(usersData || []);
+          setWorkouts(workoutsData || []);
+          setCompletedCount(totalCompleted);
+        }
+      } catch (e) {
+        setUsers([]);
+        setWorkouts([]);
+        setCompletedCount(0);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchData();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Estadísticas globales
   const stats = {
-    totalExercises: exercises.length,
-    exercisesWithVideo: exercises.filter(e => e.video_url).length,
+    totalUsers: users.length,
     totalWorkouts: workouts.length,
-    totalWorkoutExercises: workouts.reduce((acc, w) => acc + (w.exercises?.length || 0), 0),
-    categoryCounts: workouts.reduce((acc, w) => {
-      acc[w.category] = (acc[w.category] || 0) + 1;
-      return acc;
-    }, {}),
-    levelCounts: workouts.reduce((acc, w) => {
-      acc[w.level] = (acc[w.level] || 0) + 1;
-      return acc;
-    }, {})
+    totalCompleted: completedCount,
   };
 
   const menuItems = [
@@ -77,11 +110,26 @@ export default function Dashboard() {
   ];
 
   if (loading) {
+    // Esqueletos simples
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-pulso-rojo border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando datos...</p>
+      <div className="space-y-8 pb-24 animate-pulse">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="h-8 w-48 bg-gray-700 rounded mb-2"></div>
+            <div className="h-4 w-32 bg-gray-800 rounded"></div>
+          </div>
+          <div className="h-8 w-20 bg-gray-700 rounded"></div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="h-24 flex items-center justify-center">
+              <div className="h-8 w-8 bg-gray-700 rounded-full mr-4"></div>
+              <div>
+                <div className="h-4 w-24 bg-gray-700 rounded mb-2"></div>
+                <div className="h-6 w-16 bg-gray-800 rounded"></div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -103,24 +151,17 @@ export default function Dashboard() {
 
       {/* Stats principales */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="relative overflow-hidden">
+        <Card>
           <div className="flex items-center gap-4">
-            <div className="bg-blue-500/10 p-3 rounded-xl">
-              <Dumbbell className="text-blue-500" size={24} />
+            <div className="bg-purple-500/10 p-3 rounded-xl">
+              <Users className="text-purple-500" size={24} />
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Ejercicios</p>
-              <p className="text-white text-2xl font-bold">{stats.totalExercises}</p>
+              <p className="text-gray-400 text-sm">Usuarios</p>
+              <p className="text-white text-2xl font-bold">{stats.totalUsers}</p>
             </div>
           </div>
-          <div className="absolute top-2 right-2">
-            <span className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1">
-              <Youtube size={12} />
-              {stats.exercisesWithVideo} con video
-            </span>
-          </div>
         </Card>
-
         <Card>
           <div className="flex items-center gap-4">
             <div className="bg-green-500/10 p-3 rounded-xl">
@@ -132,30 +173,26 @@ export default function Dashboard() {
             </div>
           </div>
         </Card>
-
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="bg-purple-500/10 p-3 rounded-xl">
-              <BarChart3 className="text-purple-500" size={24} />
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm">Ejercicios en Rutinas</p>
-              <p className="text-white text-2xl font-bold">{stats.totalWorkoutExercises}</p>
-            </div>
-          </div>
-        </Card>
-
         <Card>
           <div className="flex items-center gap-4">
             <div className="bg-orange-500/10 p-3 rounded-xl">
               <TrendingUp className="text-orange-500" size={24} />
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Promedio por Rutina</p>
+              <p className="text-gray-400 text-sm">Entrenamientos Completados</p>
+              <p className="text-white text-2xl font-bold">{stats.totalCompleted !== null ? stats.totalCompleted : '-'}</p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-500/10 p-3 rounded-xl">
+              <BarChart3 className="text-blue-500" size={24} />
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Promedio Rutinas/Usuario</p>
               <p className="text-white text-2xl font-bold">
-                {stats.totalWorkouts > 0 
-                  ? Math.round(stats.totalWorkoutExercises / stats.totalWorkouts) 
-                  : 0}
+                {stats.totalUsers > 0 ? Math.round(stats.totalWorkouts / stats.totalUsers) : 0}
               </p>
             </div>
           </div>
