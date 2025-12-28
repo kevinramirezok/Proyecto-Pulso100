@@ -1,33 +1,15 @@
 import { useMemo } from 'react';
-import { useSchedule } from '../../context/ScheduleContext';
+import { useProgress } from '../../hooks/useProgress';
 import Card from '../../components/ui/Card';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
 import { TrendingUp, Flame, Clock, Target, Award, Dumbbell } from 'lucide-react';
-import { MEDALS } from '../../data/medals';
 import MedalCard from '../../components/features/MedalCard';
 
 export default function Progreso() {
-  const { scheduledWorkouts, getStreak, getTotalCompleted, getWeekCompleted } = useSchedule();
-
-  const completados = useMemo(() => {
-    return scheduledWorkouts.filter(w => w.status === 'completed');
-  }, [scheduledWorkouts]);
-
-  const stats = useMemo(() => {
-    const totalMinutos = completados.reduce((acc, w) => acc + (w.workoutDuration || 0), 0);
-    const totalCalorias = completados.reduce((acc, w) => {
-      return acc + ((w.workoutDuration || 0) * 10);
-    }, 0);
-    
-    return {
-      totalMinutos,
-      totalCalorias,
-      promedioMinutos: completados.length > 0 ? Math.round(totalMinutos / completados.length) : 0,
-    };
-  }, [completados]);
+  const { stats, completedWorkouts, medalsProgress, loading } = useProgress();
 
   const datosUltimos7Dias = useMemo(() => {
     const dias = [];
@@ -36,14 +18,13 @@ export default function Progreso() {
     for (let i = 6; i >= 0; i--) {
       const fecha = new Date(hoy);
       fecha.setDate(hoy.getDate() - i);
-      fecha.setHours(0, 0, 0, 0);
+      const fechaStr = fecha.toISOString().split('T')[0];
       
-      const entrenamientosDia = completados.filter(w => {
-        const fechaW = new Date(w.completedAt || w.scheduledDate);
-        return fechaW.toDateString() === fecha.toDateString();
+      const entrenamientosDia = completedWorkouts.filter(w => {
+        return w.completed_date === fechaStr;
       });
       
-      const minutos = entrenamientosDia.reduce((acc, w) => acc + (w.workoutDuration || 0), 0);
+      const minutos = entrenamientosDia.reduce((acc, w) => acc + (w.duration_minutes || 0), 0);
       
       dias.push({
         dia: fecha.toLocaleDateString('es-ES', { weekday: 'short' }).charAt(0).toUpperCase(),
@@ -53,43 +34,35 @@ export default function Progreso() {
     }
     
     return dias;
-  }, [completados]);
+  }, [completedWorkouts]);
 
   const datosCategorias = useMemo(() => {
     const categorias = {};
-    completados.forEach(w => {
-      const cat = w.workoutCategory || 'otro';
+    completedWorkouts.forEach(w => {
+      const cat = w.workout?.category || 'otro';
       categorias[cat] = (categorias[cat] || 0) + 1;
     });
     
     return Object.entries(categorias).map(([nombre, cantidad]) => ({
       nombre,
       cantidad,
-      porcentaje: completados.length > 0 ? Math.round((cantidad / completados.length) * 100) : 0
+      porcentaje: completedWorkouts.length > 0 ? Math.round((cantidad / completedWorkouts.length) * 100) : 0
     }));
-  }, [completados]);
-
-  const statsParaMedallas = useMemo(() => {
-    const categorias = new Set(completados.map(w => w.workoutCategory));
-    return {
-      totalCompleted: completados.length,
-      streak: getStreak(),
-      weekCompleted: getWeekCompleted(),
-      totalCalories: stats.totalCalorias,
-      totalMinutes: stats.totalMinutos,
-      categoriesUsed: categorias.size,
-    };
-  }, [completados, getStreak, getWeekCompleted, stats]);
+  }, [completedWorkouts]);
 
   const medallasDesbloqueadas = useMemo(() => {
-    return MEDALS.filter(medal => medal.condition(statsParaMedallas));
-  }, [statsParaMedallas]);
+    return medalsProgress.filter(m => m.isUnlocked);
+  }, [medalsProgress]);
+
+  const medallasPendientes = useMemo(() => {
+    return medalsProgress.filter(m => !m.isUnlocked).slice(0, 4);
+  }, [medalsProgress]);
 
   const CATEGORY_COLORS = {
     fuerza: 'bg-red-500',
-    running: 'bg-green-500',
-    bicicleta: 'bg-blue-500',
-    natacion: 'bg-cyan-500',
+    cardio: 'bg-green-500',
+    hiit: 'bg-orange-500',
+    flexibilidad: 'bg-purple-500',
     otro: 'bg-gray-500',
   };
 
@@ -109,6 +82,61 @@ export default function Progreso() {
     return null;
   };
 
+  // Calcular semana actual
+  const getWeekCompleted = () => {
+    const hoy = new Date();
+    const inicioSemana = new Date(hoy);
+    const dia = hoy.getDay();
+    const diff = dia === 0 ? 6 : dia - 1;
+    inicioSemana.setDate(hoy.getDate() - diff);
+    inicioSemana.setHours(0, 0, 0, 0);
+    const inicioStr = inicioSemana.toISOString().split('T')[0];
+
+    return completedWorkouts.filter(w => w.completed_date >= inicioStr).length;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-24 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-800 rounded w-32"></div>
+            <div className="h-4 bg-gray-800 rounded w-48"></div>
+          </div>
+          <div className="bg-gray-800 rounded-xl h-16 w-20"></div>
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-4 gap-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-gray-900 rounded-xl p-3 space-y-2">
+              <div className="h-8 w-8 bg-gray-800 rounded-lg mx-auto"></div>
+              <div className="h-6 bg-gray-800 rounded w-12 mx-auto"></div>
+              <div className="h-3 bg-gray-800 rounded w-16 mx-auto"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Gráfico Skeleton */}
+        <div className="bg-gray-900 rounded-xl p-4 space-y-3">
+          <div className="h-5 bg-gray-800 rounded w-32"></div>
+          <div className="h-32 bg-gray-800 rounded"></div>
+        </div>
+
+        {/* Medallas Skeleton */}
+        <div className="bg-gray-900 rounded-xl p-4 space-y-3">
+          <div className="h-5 bg-gray-800 rounded w-24"></div>
+          <div className="grid grid-cols-2 gap-2">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-20 bg-gray-800 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
@@ -118,7 +146,7 @@ export default function Progreso() {
           <p className="text-gray-400 text-sm">Tu evolución de entrenamiento</p>
         </div>
         <div className="bg-pulso-rojo/10 px-4 py-2 rounded-xl text-center">
-          <p className="text-pulso-rojo text-2xl font-bold">{getTotalCompleted()}</p>
+          <p className="text-pulso-rojo text-2xl font-bold">{stats.totalCompleted}</p>
           <p className="text-gray-400 text-xs">Total</p>
         </div>
       </div>
@@ -137,7 +165,7 @@ export default function Progreso() {
           <div className="bg-orange-500/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-1">
             <span className="text-sm">🔥</span>
           </div>
-          <p className="text-white text-lg font-bold">{getStreak()}</p>
+          <p className="text-white text-lg font-bold">{stats.streak}</p>
           <p className="text-gray-500 text-[10px]">Racha</p>
         </Card>
         
@@ -145,7 +173,7 @@ export default function Progreso() {
           <div className="bg-blue-500/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-1">
             <Clock className="text-blue-500" size={16} />
           </div>
-          <p className="text-white text-lg font-bold">{stats.totalMinutos}</p>
+          <p className="text-white text-lg font-bold">{stats.totalMinutes}</p>
           <p className="text-gray-500 text-[10px]">Minutos</p>
         </Card>
         
@@ -153,7 +181,7 @@ export default function Progreso() {
           <div className="bg-green-500/10 w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-1">
             <Flame className="text-green-500" size={16} />
           </div>
-          <p className="text-white text-lg font-bold">{stats.totalCalorias}</p>
+          <p className="text-white text-lg font-bold">{stats.totalCalories}</p>
           <p className="text-gray-500 text-[10px]">Calorías</p>
         </Card>
       </div>
@@ -165,7 +193,7 @@ export default function Progreso() {
           <TrendingUp className="text-pulso-rojo" size={18} />
         </div>
         
-        {completados.length === 0 ? (
+        {completedWorkouts.length === 0 ? (
           <div className="text-center py-6">
             <Dumbbell className="mx-auto text-gray-600 mb-2" size={32} />
             <p className="text-gray-500 text-sm">Completá entrenamientos para ver tu progreso</p>
@@ -193,7 +221,7 @@ export default function Progreso() {
       </Card>
 
       {/* Minutos por día */}
-      {completados.length > 0 && (
+      {completedWorkouts.length > 0 && (
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-white font-semibold">Minutos activos</h3>
@@ -254,37 +282,38 @@ export default function Progreso() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-white font-semibold">Medallas</h3>
           <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-full">
-            {medallasDesbloqueadas.length}/{MEDALS.length}
+            {medallasDesbloqueadas.length}/{medalsProgress.length}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {MEDALS.slice(0, 6).map(medal => (
+          {medalsProgress.slice(0, 6).map(medal => (
             <MedalCard
               key={medal.id}
               medal={medal}
-              unlocked={medallasDesbloqueadas.some(m => m.id === medal.id)}
+              unlocked={medal.isUnlocked}
+              progress={medal.percentage}
               compact
             />
           ))}
         </div>
-        {MEDALS.length > 6 && (
+        {medalsProgress.length > 6 && (
           <p className="text-center text-gray-500 text-xs mt-3">
-            +{MEDALS.length - 6} medallas más
+            +{medalsProgress.length - 6} medallas más
           </p>
         )}
       </Card>
 
       {/* Racha motivacional */}
-      {getStreak() > 0 && (
+      {stats.streak > 0 && (
         <Card className="bg-gradient-to-r from-orange-500/10 to-pulso-rojo/10 border-orange-500/30">
           <div className="flex items-center gap-3">
             <span className="text-3xl">🔥</span>
             <div>
               <p className="text-white font-semibold">
-                {getStreak() >= 7 ? '¡Racha increíble!' : getStreak() >= 3 ? '¡Seguí así!' : '¡Buen comienzo!'}
+                {stats.streak >= 7 ? '¡Racha increíble!' : stats.streak >= 3 ? '¡Seguí así!' : '¡Buen comienzo!'}
               </p>
               <p className="text-gray-400 text-sm">
-                {getStreak()} {getStreak() === 1 ? 'día' : 'días'} consecutivos
+                {stats.streak} {stats.streak === 1 ? 'día' : 'días'} consecutivos
               </p>
             </div>
           </div>

@@ -1,151 +1,175 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import * as scheduleService from '../services/scheduleService';
+import * as progressService from '../services/progressService';
+import { checkAndUnlockMedals } from '../services/medalService';
 
 const ScheduleContext = createContext();
 
 export const ScheduleProvider = ({ children }) => {
-  const [scheduledWorkouts, setScheduledWorkouts] = useState(() => {
-    const saved = localStorage.getItem('pulso-scheduled');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { user } = useAuth();
+  const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Cargar datos cuando el usuario cambie
   useEffect(() => {
-    localStorage.setItem('pulso-scheduled', JSON.stringify(scheduledWorkouts));
-  }, [scheduledWorkouts]);
+    if (user?.id) {
+      loadScheduledWorkouts();
+    } else {
+      setScheduledWorkouts([]);
+    }
+  }, [user?.id]);
 
-  const scheduleWorkout = (workout, date) => {
-    const newSchedule = {
-      id: Date.now(),
-      workoutId: workout.id,
-      workoutName: workout.name,
-      workoutCategory: workout.category,
-      workoutDuration: workout.duration,
-      scheduledDate: date,
-      status: 'pending', // pending, completed, skipped
-      completedAt: null,
-    };
-    setScheduledWorkouts([...scheduledWorkouts, newSchedule]);
+  // Cargar entrenamientos agendados desde Supabase
+  const loadScheduledWorkouts = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await scheduleService.getScheduledWorkouts(user.id);
+      setScheduledWorkouts(data);
+    } catch (err) {
+      console.error('Error cargando agendados:', err);
+      setError('Error al cargar entrenamientos agendados');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const completeScheduledWorkout = (scheduleId) => {
-    setScheduledWorkouts(
-      scheduledWorkouts.map(s =>
-        s.id === scheduleId
-          ? { ...s, status: 'completed', completedAt: new Date().toISOString() }
-          : s
-      )
-    );
+  const scheduleWorkout = async (workout, date) => {
+    if (!user?.id) {
+      setError('Debe iniciar sesión para agendar');
+      return;
+    }
+
+    try {
+      const scheduled = await scheduleService.scheduleWorkout(
+        user.id,
+        workout.id,
+        date,
+        'pendiente'
+      );
+      setScheduledWorkouts(prev => [...prev, scheduled]);
+    } catch (err) {
+      console.error('Error agendando workout:', err);
+      setError('Error al agendar entrenamiento');
+      throw err;
+    }
   };
 
-  const deleteScheduledWorkout = (scheduleId) => {
-    setScheduledWorkouts(scheduledWorkouts.filter(s => s.id !== scheduleId));
+  const completeScheduledWorkout = async (scheduleId) => {
+    if (!user?.id) return;
+
+    try {
+      // Buscar el scheduled workout para obtener datos
+      const scheduled = scheduledWorkouts.find(s => s.id === scheduleId);
+      if (!scheduled) return;
+
+      // Marcar como completado en scheduled_workouts
+      const updated = await scheduleService.markAsCompleted(scheduleId);
+      
+      // Registrar en completed_workouts
+      await progressService.completeWorkout(
+        user.id,
+        scheduled.workout_id,
+        scheduleId,
+        scheduled.workout?.duration,
+        scheduled.workout?.calories
+      );
+
+      // Verificar y desbloquear medallas
+      await checkAndUnlockMedals(user.id);
+
+      // Actualizar estado local
+      setScheduledWorkouts(prev =>
+        prev.map(s => s.id === scheduleId ? updated : s)
+      );
+    } catch (err) {
+      console.error('Error completando workout:', err);
+      setError('Error al completar entrenamiento');
+      throw err;
+    }
+  };
+
+  const deleteScheduledWorkout = async (scheduleId) => {
+    if (!user?.id) return;
+
+    try {
+      await scheduleService.deleteScheduledWorkout(scheduleId);
+      setScheduledWorkouts(prev => prev.filter(s => s.id !== scheduleId));
+    } catch (err) {
+      console.error('Error eliminando agendado:', err);
+      setError('Error al eliminar entrenamiento');
+      throw err;
+    }
   };
 
   const getWorkoutsForDate = (date) => {
-    const dateStr = new Date(date).toDateString();
+    const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
     return scheduledWorkouts.filter(
-      s => new Date(s.scheduledDate).toDateString() === dateStr
+      s => s.scheduled_date === dateStr
     );
   };
 
-  // Calcular racha de días consecutivos
-  const getStreak = () => {
-    if (scheduledWorkouts.length === 0) return 0;
-    
-    // Obtener entrenamientos completados
-    const completados = scheduledWorkouts.filter(w => w.status === 'completed');
-    if (completados.length === 0) return 0;
-    
-    // Obtener fechas únicas de entrenamientos completados
-    const fechasCompletadas = [...new Set(
-      completados.map(w => new Date(w.completedAt || w.scheduledDate).toDateString())
-    )].sort((a, b) => new Date(b) - new Date(a)); // Ordenar de más reciente a más antigua
-    
-    // Verificar si hoy o ayer tiene entrenamiento (para contar racha activa)
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const ayer = new Date(hoy);
-    ayer.setDate(ayer.getDate() - 1);
-    
-    const primeraFecha = new Date(fechasCompletadas[0]);
-    primeraFecha.setHours(0, 0, 0, 0);
-    
-    // Si la última actividad no fue hoy ni ayer, la racha se rompió
-    if (primeraFecha < ayer) return 0;
-    
-    // Contar días consecutivos
-    let racha = 1;
-    for (let i = 0; i < fechasCompletadas.length - 1; i++) {
-      const fechaActual = new Date(fechasCompletadas[i]);
-      const fechaSiguiente = new Date(fechasCompletadas[i + 1]);
-      
-      fechaActual.setHours(0, 0, 0, 0);
-      fechaSiguiente.setHours(0, 0, 0, 0);
-      
-      const diffDias = (fechaActual - fechaSiguiente) / (1000 * 60 * 60 * 24);
-      
-      if (diffDias === 1) {
-        racha++;
-      } else {
-        break;
-      }
+  // Completar workout HOY (para usar desde Rutinas - sin agendar previo)
+  const completeWorkoutToday = async (workout) => {
+    if (!user?.id) {
+      setError('Debe iniciar sesión');
+      return;
     }
-    
-    return racha;
-  };
 
-  // Completar workout HOY (para usar desde Rutinas)
-  const completeWorkoutToday = (workout) => {
-    const hoy = new Date();
-    const nuevoSchedule = {
-      id: Date.now(),
-      workoutId: workout.id,
-      workoutName: workout.name,
-      workoutCategory: workout.category,
-      workoutDuration: workout.duration,
-      scheduledDate: hoy.toISOString(),
-      status: 'completed',
-      completedAt: hoy.toISOString(),
-    };
-    setScheduledWorkouts(prev => [...prev, nuevoSchedule]);
+    try {
+      const hoy = new Date().toISOString().split('T')[0];
+
+      // Registrar en completed_workouts
+      await progressService.completeWorkout(
+        user.id,
+        workout.id,
+        null, // sin scheduled_workout_id
+        workout.duration,
+        workout.calories
+      );
+
+      // Verificar medallas
+      await checkAndUnlockMedals(user.id);
+
+      // Recargar scheduled workouts por si hay cambios
+      await loadScheduledWorkouts();
+    } catch (err) {
+      console.error('Error completando workout hoy:', err);
+      setError('Error al registrar entrenamiento');
+      throw err;
+    }
   };
 
   // Obtener total de entrenamientos completados
   const getTotalCompleted = () => {
-    return scheduledWorkouts.filter(w => w.status === 'completed').length;
+    return scheduledWorkouts.filter(w => w.status === 'completado').length;
   };
 
-  // Obtener entrenamientos completados de la semana actual (lunes a domingo)
-  const getWeekCompleted = () => {
-    const hoy = new Date();
-    const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, etc.
-    
-    // Calcular el lunes de esta semana
-    const lunes = new Date(hoy);
-    const diasDesdelunes = diaSemana === 0 ? 6 : diaSemana - 1;
-    lunes.setDate(hoy.getDate() - diasDesdelunes);
-    lunes.setHours(0, 0, 0, 0);
-    
-    // Calcular el domingo de esta semana
-    const domingo = new Date(lunes);
-    domingo.setDate(lunes.getDate() + 6);
-    domingo.setHours(23, 59, 59, 999);
-    
-    return scheduledWorkouts.filter(w => {
-      if (w.status !== 'completed') return false;
-      const fecha = new Date(w.completedAt || w.scheduledDate);
-      return fecha >= lunes && fecha <= domingo;
-    }).length;
+  // Obtener racha (requiere query a completed_workouts, se implementa en getUserStats)
+  const getStreak = () => {
+    // Esta función ahora debería usar progressService.getUserStats()
+    // Por compatibilidad, retornamos 0 y se debe usar el hook useProgress
+    return 0;
   };
 
-  // Verificar si un workout ya fue completado (por workoutId)
+  // Verificar si un workout ya fue completado
   const isWorkoutCompleted = (workoutId) => {
-    return scheduledWorkouts.some(w => w.workoutId === workoutId && w.status === 'completed');
+    return scheduledWorkouts.some(
+      w => w.workout_id === workoutId && w.status === 'completado'
+    );
   };
 
   return (
     <ScheduleContext.Provider
       value={{
         scheduledWorkouts,
+        loading,
+        error,
         scheduleWorkout,
         completeScheduledWorkout,
         deleteScheduledWorkout,
@@ -153,8 +177,8 @@ export const ScheduleProvider = ({ children }) => {
         getStreak,
         completeWorkoutToday,
         getTotalCompleted,
-        getWeekCompleted,
         isWorkoutCompleted,
+        refreshSchedule: loadScheduledWorkouts,
       }}
     >
       {children}

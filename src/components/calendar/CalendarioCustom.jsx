@@ -44,9 +44,9 @@ export default function CalendarioCustom({ scheduledWorkouts, onDayClick }) {
   };
 
   const getWorkoutsDelDia = (fecha) => {
-    const fechaStr = fecha.toDateString();
+    const fechaStr = fecha.toISOString().split('T')[0]; // Formato YYYY-MM-DD
     return scheduledWorkouts.filter(
-      sw => new Date(sw.scheduledDate).toDateString() === fechaStr
+      sw => sw.scheduled_date === fechaStr
     );
   };
 
@@ -172,7 +172,7 @@ export default function CalendarioCustom({ scheduledWorkouts, onDayClick }) {
                           className={`
                             w-0.5 h-0.5 sm:w-1.5 sm:h-1.5 rounded-full
                             ${workout.status === 'completed' ? 'opacity-50' : ''}
-                            ${CATEGORY_COLORS[workout.workoutCategory] || 'bg-gray-500'}
+                            ${CATEGORY_COLORS[workout.workout?.category] || 'bg-gray-500'}
                           `}
                         />
                       ))}

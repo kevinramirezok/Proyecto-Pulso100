@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useSchedule } from '../../context/ScheduleContext';
-import { MEDALS } from '../../data/medals';
+import { useProgress } from '../../hooks/useProgress';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { 
@@ -11,31 +10,15 @@ import {
 
 export default function Perfil() {
   const { user, logout } = useAuth();
-  const { 
-    scheduledWorkouts, 
-    getStreak, 
-    getTotalCompleted, 
-    getWeekCompleted 
-  } = useSchedule();
+  const { stats, medals, completedWorkouts } = useProgress();
 
-  // Calcular estadísticas
-  const completados = scheduledWorkouts.filter(w => w.status === 'completed');
-  const totalMinutos = completados.reduce((acc, w) => acc + (w.workoutDuration || 0), 0);
-  const totalCalorias = totalMinutos * 10;
-  const categorias = new Set(completados.map(w => w.workoutCategory));
+  // Stats ya vienen del hook useProgress
+  const medallasDesbloqueadas = medals;
 
-  // Stats para medallas
-  const statsParaMedallas = {
-    totalCompleted: completados.length,
-    streak: getStreak(),
-    weekCompleted: getWeekCompleted(),
-    totalCalories: totalCalorias,
-    totalMinutes: totalMinutos,
-    categoriesUsed: categorias.size,
-  };
-
-  // Medallas desbloqueadas
-  const medallasDesbloqueadas = MEDALS.filter(medal => medal.condition(statsParaMedallas));
+  // Calcular categorías usadas desde completed workouts
+  const categorias = new Set(
+    completedWorkouts.map(w => w.workout?.category).filter(Boolean)
+  );
 
   // Fecha de registro (simulada)
   const fechaRegistro = new Date();
@@ -78,25 +61,25 @@ export default function Perfil() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 xs:grid-cols-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
         <Card className="text-center">
           <Target className="mx-auto text-pulso-rojo mb-2" size={28} />
-          <p className="text-2xl font-bold text-white">{getTotalCompleted()}</p>
+          <p className="text-2xl font-bold text-white">{stats.totalCompleted}</p>
           <p className="text-gray-400 text-xs">Entrenamientos</p>
         </Card>
 
         <Card className="text-center">
           <span className="text-2xl block mb-1">🔥</span>
-          <p className="text-2xl font-bold text-white">{getStreak()}</p>
+          <p className="text-2xl font-bold text-white">{stats.streak}</p>
           <p className="text-gray-400 text-xs">Días de racha</p>
         </Card>
 
         <Card className="text-center">
           <Clock className="mx-auto text-blue-500 mb-2" size={28} />
-          <p className="text-2xl font-bold text-white">{totalMinutos}</p>
+          <p className="text-2xl font-bold text-white">{stats.totalMinutes}</p>
           <p className="text-gray-400 text-xs">Minutos totales</p>
         </Card>
 
         <Card className="text-center">
           <Flame className="mx-auto text-orange-500 mb-2" size={28} />
-          <p className="text-2xl font-bold text-white">{totalCalorias.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-white">{stats.totalCalories.toLocaleString()}</p>
           <p className="text-gray-400 text-xs">Calorías quemadas</p>
         </Card>
         <style>{`
@@ -116,7 +99,7 @@ export default function Perfil() {
             <h3 className="text-white font-bold">Medallas</h3>
           </div>
           <span className="text-gray-400 text-sm">
-            {medallasDesbloqueadas.length}/{MEDALS.length}
+            {medallasDesbloqueadas.length}
           </span>
         </div>
 
@@ -158,19 +141,19 @@ export default function Perfil() {
             <div className="flex justify-between text-sm mb-2">
               <span className="text-gray-400">Nivel de actividad</span>
               <span className="text-white font-medium">
-                {getTotalCompleted() < 5 ? 'Principiante' : 
-                 getTotalCompleted() < 15 ? 'Intermedio' : 
-                 getTotalCompleted() < 30 ? 'Avanzado' : 'Experto'}
+                {stats.totalCompleted < 5 ? 'Principiante' : 
+                 stats.totalCompleted < 15 ? 'Intermedio' : 
+                 stats.totalCompleted < 30 ? 'Avanzado' : 'Experto'}
               </span>
             </div>
             <div className="w-full bg-gray-800 rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-pulso-rojo to-orange-500 h-2 rounded-full transition-all"
-                style={{ width: `${Math.min((getTotalCompleted() / 50) * 100, 100)}%` }}
+                className="h-2 rounded-full bg-gradient-to-r from-pulso-rojo to-orange-500"
+                style={{ width: `${Math.min((stats.totalCompleted / 50) * 100, 100)}%` }}
               />
             </div>
-            <p className="text-gray-500 text-xs mt-1">
-              {getTotalCompleted()}/50 para nivel máximo
+            <p className="text-xs text-gray-500 mt-1">
+              {stats.totalCompleted}/50 para nivel máximo
             </p>
           </div>
 
