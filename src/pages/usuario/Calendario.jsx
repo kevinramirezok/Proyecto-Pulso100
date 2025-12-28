@@ -33,10 +33,10 @@ export default function Calendario() {
   // Stats del mes actual
   const hoy = new Date();
   const entrenamientosMes = scheduledWorkouts.filter(w => {
-    const fecha = new Date(w.scheduledDate);
+    const fecha = new Date(w.scheduled_date);
     return fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
   });
-  const completadosMes = entrenamientosMes.filter(w => w.status === 'completed').length;
+  const completadosMes = entrenamientosMes.filter(w => w.status === 'completado').length;
 
   const handleDayClick = (fecha, workoutsDelDia) => {
     setSelectedDate(fecha);
@@ -54,24 +54,19 @@ export default function Calendario() {
     });
   };
 
-  const handleAgregarEntrenamiento = (rutina) => {
+  const handleAgregarEntrenamiento = async (rutina) => {
     if (!selectedDate) return;
     
-    scheduleWorkout(rutina, selectedDate.toISOString());
+    const fechaStr = selectedDate.toISOString().split('T')[0];
     
-    const nuevoWorkout = {
-      id: Date.now(),
-      workoutId: rutina.id,
-      workoutName: rutina.name,
-      workoutCategory: rutina.category,
-      workoutDuration: rutina.duration,
-      scheduledDate: selectedDate.toISOString(),
-      status: 'pending',
-    };
-    
-    setSelectedWorkouts(prev => [...prev, nuevoWorkout]);
-    setShowAddWorkout(false);
-    setSearchTerm('');
+    try {
+      await scheduleWorkout(rutina, fechaStr);
+      // El context ya actualiza scheduledWorkouts automáticamente
+      setShowAddWorkout(false);
+      setSearchTerm('');
+    } catch (error) {
+      console.error('Error agendando:', error);
+    }
   };
 
   const cerrarModalPrincipal = () => {
@@ -269,16 +264,16 @@ export default function Calendario() {
                     <div className="flex justify-between items-center">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-medium text-sm">{workout.workoutName}</p>
-                          {workout.status === 'completed' && (
+                          <p className="text-white font-medium text-sm">{workout.workout?.name || 'Entrenamiento'}</p>
+                          {workout.status === 'completado' && (
                             <CheckCircle className="text-green-500" size={14} />
                           )}
                         </div>
                         <p className="text-gray-500 text-xs mt-0.5">
-                          {workout.workoutDuration} min • {workout.status === 'completed' ? 'Completado' : 'Pendiente'}
+                          {workout.workout?.duration || 0} min • {workout.status === 'completado' ? 'Completado' : 'Pendiente'}
                         </p>
                       </div>
-                      <Badge variant={workout.workoutCategory}>{workout.workoutCategory}</Badge>
+                      <Badge variant={workout.workout?.category || 'otro'}>{workout.workout?.category || 'otro'}</Badge>
                     </div>
                   </div>
                 ))}
@@ -302,35 +297,35 @@ export default function Calendario() {
       <Modal
         isOpen={!!selectedWorkout}
         onClose={() => setSelectedWorkout(null)}
-        title={selectedWorkout?.workoutName}
+        title={selectedWorkout?.workout?.name || 'Entrenamiento'}
       >
         {selectedWorkout && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Badge variant={selectedWorkout.workoutCategory}>{selectedWorkout.workoutCategory}</Badge>
+              <Badge variant={selectedWorkout.workout?.category || 'otro'}>{selectedWorkout.workout?.category || 'otro'}</Badge>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                selectedWorkout.status === 'completed' 
+                selectedWorkout.status === 'completado' 
                   ? 'bg-green-500/20 text-green-500' 
                   : 'bg-yellow-500/20 text-yellow-500'
               }`}>
-                {selectedWorkout.status === 'completed' ? 'Completado' : 'Pendiente'}
+                {selectedWorkout.status === 'completado' ? 'Completado' : 'Pendiente'}
               </span>
             </div>
 
             <div className="flex items-center justify-around py-3 bg-pulso-negro rounded-xl">
               <div className="text-center">
-                <p className="text-white font-bold text-lg">{selectedWorkout.workoutDuration}</p>
+                <p className="text-white font-bold text-lg">{selectedWorkout.workout?.duration || 0}</p>
                 <p className="text-gray-500 text-xs">minutos</p>
               </div>
             </div>
 
-            {selectedWorkout.status === 'pending' ? (
+            {selectedWorkout.status === 'pendiente' ? (
               <div className="space-y-2 pt-2">
                 <Button
                   variant="primary"
                   className="w-full"
                   onClick={() => {
-                    const rutinaCompleta = workouts.find(w => w.name === selectedWorkout.workoutName);
+                    const rutinaCompleta = workouts.find(w => w.id === selectedWorkout.workout_id) || selectedWorkout.workout;
                     if (rutinaCompleta) {
                       setSelectedWorkout(null);
                       cerrarModalPrincipal();
@@ -345,15 +340,16 @@ export default function Calendario() {
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="secondary"
-                    onClick={() => {
-                      completeScheduledWorkout(selectedWorkout.id);
-                      setSelectedWorkouts(prev => 
-                        prev.map(w => w.id === selectedWorkout.id 
-                          ? { ...w, status: 'completed' } 
-                          : w
-                        )
-                      );
-                      setSelectedWorkout(null);
+                    onClick={async () => {
+                      try {
+                        await completeScheduledWorkout(selectedWorkout.id);
+                        // Cerrar modal y actualizar vista
+                        setSelectedWorkout(null);
+                        cerrarModalPrincipal();
+                      } catch (error) {
+                        console.error('Error completando workout:', error);
+                        alert('Error al completar el entrenamiento');
+                      }
                     }}
                   >
                     <CheckCircle size={14} className="mr-1" />
@@ -362,13 +358,15 @@ export default function Calendario() {
                   
                   <Button
                     variant="outline"
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm('¿Eliminar este entrenamiento?')) {
-                        deleteScheduledWorkout(selectedWorkout.id);
-                        setSelectedWorkouts(prev => 
-                          prev.filter(w => w.id !== selectedWorkout.id)
-                        );
-                        setSelectedWorkout(null);
+                        try {
+                          await deleteScheduledWorkout(selectedWorkout.id);
+                          setSelectedWorkout(null);
+                          cerrarModalPrincipal();
+                        } catch (error) {
+                          console.error('Error eliminando:', error);
+                        }
                       }
                     }}
                   >
