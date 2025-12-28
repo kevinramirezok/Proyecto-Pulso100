@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useWorkouts } from '../../context/WorkoutContext';
 import { createWorkout, updateWorkout, deleteWorkout } from '../../services/workoutService';
+import { toast } from 'sonner';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
-import { Plus, Edit, Trash2, Clock, Flame, ChevronDown, ChevronUp, X, Search, GripVertical, Youtube } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Flame, ChevronDown, ChevronUp, X, Search, GripVertical, Youtube, Loader2, AlertCircle } from 'lucide-react';
 
 const CATEGORIES = [
   { key: 'fuerza', label: 'Fuerza' },
@@ -23,8 +24,12 @@ const MUSCLE_GROUPS = ['todos', 'piernas', 'pecho', 'espalda', 'hombros', 'bicep
 export default function RutinasAdmin() {
   const { workouts, exercises, loading, refreshData } = useWorkouts();
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   
   // Búsqueda y filtros de ejercicios
   const [exerciseSearch, setExerciseSearch] = useState('');
@@ -62,6 +67,7 @@ export default function RutinasAdmin() {
     setSelectedExercises([]);
     setExerciseSearch('');
     setMuscleFilter('todos');
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -86,6 +92,7 @@ export default function RutinasAdmin() {
     );
     setExerciseSearch('');
     setMuscleFilter('todos');
+    setFormErrors({});
     setShowModal(true);
   };
 
@@ -93,6 +100,7 @@ export default function RutinasAdmin() {
     setShowModal(false);
     setEditingWorkout(null);
     setSelectedExercises([]);
+    setFormErrors({});
   };
 
   const addExercise = (exercise) => {
@@ -128,14 +136,37 @@ export default function RutinasAdmin() {
     setSelectedExercises(updated);
   };
 
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'El nombre es obligatorio';
+    } else if (formData.name.trim().length < 3) {
+      errors.name = 'El nombre debe tener al menos 3 caracteres';
+    }
+    
+    if (!formData.duration || formData.duration < 5) {
+      errors.duration = 'La duración debe ser al menos 5 minutos';
+    }
+    
+    if (!formData.calories || formData.calories < 10) {
+      errors.calories = 'Las calorías deben ser al menos 10';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      alert('El nombre es obligatorio');
+    
+    if (!validateForm()) {
+      toast.error('Por favor, corrige los errores del formulario');
       return;
     }
+    
     if (selectedExercises.length === 0) {
-      alert('Agregá al menos un ejercicio');
+      toast.error('Agregá al menos un ejercicio a la rutina');
       return;
     }
 
@@ -143,31 +174,39 @@ export default function RutinasAdmin() {
     try {
       if (editingWorkout) {
         await updateWorkout(editingWorkout.id, formData, selectedExercises);
-        alert('Rutina actualizada correctamente');
+        toast.success('✅ Rutina actualizada correctamente');
       } else {
         await createWorkout(formData, selectedExercises);
-        alert('Rutina creada correctamente');
+        toast.success('✅ Rutina creada correctamente');
       }
       await refreshData();
       closeModal();
     } catch (error) {
-      alert('Error al guardar: ' + error.message);
+      toast.error('❌ Error al guardar: ' + error.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (workout) => {
-    if (!confirm(`¿Eliminar "${workout.name}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+  const confirmDelete = (workout) => {
+    setWorkoutToDelete(workout);
+    setShowDeleteModal(true);
+  };
 
+  const handleDelete = async () => {
+    if (!workoutToDelete) return;
+
+    setDeletingId(workoutToDelete.id);
     try {
-      await deleteWorkout(workout.id);
-      alert('Rutina eliminada');
+      await deleteWorkout(workoutToDelete.id);
+      toast.success('✅ Rutina eliminada correctamente');
       await refreshData();
+      setShowDeleteModal(false);
+      setWorkoutToDelete(null);
     } catch (error) {
-      alert('Error al eliminar: ' + error.message);
+      toast.error('❌ Error al eliminar: ' + error.message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -230,11 +269,26 @@ export default function RutinasAdmin() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => openEditModal(workout)}>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={() => openEditModal(workout)}
+                    className="transition-all duration-200 hover:scale-105"
+                  >
                     <Edit size={16} />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(workout)}>
-                    <Trash2 size={16} className="text-red-500" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => confirmDelete(workout)}
+                    disabled={deletingId === workout.id}
+                    className="transition-all duration-200 hover:scale-105 hover:border-red-500"
+                  >
+                    {deletingId === workout.id ? (
+                      <Loader2 size={16} className="animate-spin text-red-500" />
+                    ) : (
+                      <Trash2 size={16} className="text-red-500" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -252,13 +306,31 @@ export default function RutinasAdmin() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Información básica */}
           <div className="space-y-4">
-            <Input
-              label="Nombre de la rutina *"
-              placeholder="Ej: Full Body Strength"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">
+                Nombre de la rutina <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: Full Body Strength"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (formErrors.name) setFormErrors({ ...formErrors, name: null });
+                }}
+                className={`w-full bg-pulso-negro border rounded-lg p-3 text-white focus:outline-none transition-colors duration-200 ${
+                  formErrors.name 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-gray-700 focus:border-pulso-rojo'
+                }`}
+              />
+              {formErrors.name && (
+                <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
+                  <AlertCircle size={12} />
+                  <span>{formErrors.name}</span>
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-gray-400 text-sm mb-2">Descripción</label>
@@ -277,26 +349,48 @@ export default function RutinasAdmin() {
                 <input
                   type="text"
                   inputMode="numeric"
-                  className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
+                  className={`w-full bg-pulso-negro border rounded-lg p-3 text-white focus:outline-none transition-colors duration-200 ${
+                    formErrors.duration 
+                      ? 'border-red-500 focus:border-red-500' 
+                      : 'border-gray-700 focus:border-pulso-rojo'
+                  }`}
                   value={formData.duration}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '');
                     setFormData({ ...formData, duration: val ? parseInt(val) : '' });
+                    if (formErrors.duration) setFormErrors({ ...formErrors, duration: null });
                   }}
                 />
+                {formErrors.duration && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
+                    <AlertCircle size={12} />
+                    <span>{formErrors.duration}</span>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Calorías</label>
                 <input
                   type="text"
                   inputMode="numeric"
-                  className="w-full bg-pulso-negro border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-pulso-rojo"
+                  className={`w-full bg-pulso-negro border rounded-lg p-3 text-white focus:outline-none transition-colors duration-200 ${
+                    formErrors.calories 
+                      ? 'border-red-500 focus:border-red-500' 
+                      : 'border-gray-700 focus:border-pulso-rojo'
+                  }`}
                   value={formData.calories}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '');
                     setFormData({ ...formData, calories: val ? parseInt(val) : '' });
+                    if (formErrors.calories) setFormErrors({ ...formErrors, calories: null });
                   }}
                 />
+                {formErrors.calories && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
+                    <AlertCircle size={12} />
+                    <span>{formErrors.calories}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -481,14 +575,85 @@ export default function RutinasAdmin() {
 
           {/* Botones */}
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" className="flex-1" onClick={closeModal}>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              onClick={closeModal}
+              disabled={saving}
+            >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1" disabled={saving}>
-              {saving ? 'Guardando...' : editingWorkout ? 'Actualizar Rutina' : 'Crear Rutina'}
+            <Button 
+              type="submit" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              disabled={saving}
+            >
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" />
+                  Guardando...
+                </span>
+              ) : (
+                editingWorkout ? 'Actualizar Rutina' : 'Crear Rutina'
+              )}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Confirmación de Eliminación */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setWorkoutToDelete(null);
+        }}
+        title="Confirmar Eliminación"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+            <div>
+              <p className="text-white font-medium mb-1">
+                ¿Estás seguro de eliminar esta rutina?
+              </p>
+              <p className="text-gray-400 text-sm">
+                <span className="text-white font-semibold">"{workoutToDelete?.name}"</span> será eliminada permanentemente, junto con todos sus ejercicios asociados. Esta acción no se puede deshacer.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button 
+              type="button" 
+              variant="secondary" 
+              className="flex-1 transition-all duration-200 hover:scale-105" 
+              onClick={() => {
+                setShowDeleteModal(false);
+                setWorkoutToDelete(null);
+              }}
+              disabled={deletingId !== null}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleDelete}
+              disabled={deletingId !== null}
+              className="flex-1 bg-red-600 hover:bg-red-700 transition-all duration-200 hover:scale-105"
+            >
+              {deletingId !== null ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" />
+                  Eliminando...
+                </span>
+              ) : (
+                'Eliminar'
+              )}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
