@@ -60,10 +60,9 @@ export default function Dashboard() {
       description: 'Ver usuarios registrados',
       icon: Users,
       path: '/admin/usuarios',
-      stat: 'Próximamente',
+      stat: 'Ver todos',
       color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
-      disabled: true
+      bgColor: 'bg-purple-500/10'
     },
     {
       title: 'Configuración',

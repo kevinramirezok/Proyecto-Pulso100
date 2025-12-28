@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import UsuariosAdmin from './pages/admin/Usuarios';
 import { useAuth } from './context/AuthContext';
 import { ScheduleProvider, useSchedule } from './context/ScheduleContext';
 import { EntrenamientoProvider, useEntrenamiento } from './context/EntrenamientoContext';
@@ -135,7 +136,7 @@ function App() {
                     <Routes>
                       <Route path="dashboard" element={<DashboardAdmin />} />
                       <Route path="ejercicios" element={<EjerciciosAdmin />} />
-                      <Route path="usuarios" element={<div className="text-white">Mis Usuarios (próximamente)</div>} />
+                      <Route path="usuarios" element={<UsuariosAdmin />} />
                       <Route path="rutinas" element={<RutinasAdmin />} />
                       <Route path="calendario" element={<div className="text-white">Calendario General (próximamente)</div>} />
                       <Route path="config" element={<div className="text-white">Configuración (próximamente)</div>} />

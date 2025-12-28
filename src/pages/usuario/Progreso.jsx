@@ -269,7 +269,7 @@ export default function Progreso() {
         </div>
         {MEDALS.length > 6 && (
           <p className="text-center text-gray-500 text-xs mt-3">
-            +{MEDALS.length - 6} medallas más
+            +{MEDALS.length - 6} medallas más en Perfil
           </p>
         )}
       </Card>

@@ -1,183 +1,162 @@
-{
-  "framework": "React 18 + Vite",
-  "styling": "Tailwind CSS (con dark mode)",
-  "icons": "Lucide React",
-  "charts": "Recharts",
-  "calendar": "CalendarioCustom (sin Big Calendar)",
-  "routing": "React Router DOM v6",
-  "date-utils": "date-fns",
-  "animations": "Framer Motion (opcional)",
-  "future-backend": "Supabase",
-  "future-auth": "Supabase Auth"
-}
-```
+
+# 📋 PULSO 100 — DOCUMENTACIÓN COMPLETA
+
+## 🛠️ Stack Tecnológico
+
+- **Framework:** React 18 + Vite
+- **Estilos:** Tailwind CSS (con dark mode)
+- **Iconos:** Lucide React
+- **Gráficos:** Recharts
+- **Calendario:** CalendarioCustom (sin Big Calendar)
+- **Routing:** React Router DOM v6
+- **Utilidades de fecha:** date-fns
+- **Animaciones:** Framer Motion (opcional)
+- **Backend futuro:** Supabase
+- **Auth futuro:** Supabase Auth
+
+
+
+## 📋 Metodología: Waterfall con Sprints
+
+**Modelo híbrido:** Desarrollo en cascada con iteraciones y checkpoints.
+
+### Principios Clave
+- No avanzar hasta completar la fase actual
+- Testing después de cada fase
+- Aprobación antes de seguir
+- Código limpio y documentado
+- Commits organizados por fase
 
 ---
 
-## 📋 **METODOLOGÍA: WATERFALL con SPRINTS**
-
-**"Desarrollo en Cascada con Iteraciones"** o **"Agile Waterfall Híbrido"**
-
-### **Principios:**
-✅ No avanzar hasta completar fase actual
-✅ Testing después de cada fase
-✅ Aprobación antes de seguir
-✅ Código limpio y documentado
-✅ Commits organizados por fase
 
 ---
 
-## 🗓️ **CRONOGRAMA DETALLADO (7 Semanas)**
+## 🗓️ Cronograma Detallado (7 Semanas)
 
-### **📅 SEMANA 1: Setup + Fundación (1-7 Dic)** ✅ COMPLETADA
+
+### 📅 Semana 1: Setup + Fundación (1-7 Dic) ✅ COMPLETADA
 **Entregables:**
-- ✅ Proyecto Vite configurado
-- ✅ Tailwind configurado (modo oscuro implementado)
-- ✅ CalendarioCustom implementado (sin Big Calendar)
-- ✅ Sistema de rutas por roles
-- ✅ Layouts base (Usuario/Admin)
-- ✅ Bottom Navigation por rol
-- ✅ Componentes UI base (Button, Card, Badge, Input, Modal, MiniCalendario)
-- ✅ Login mockup con selección de rol
-- ✅ Paleta de colores aplicada
+- Proyecto Vite configurado
+- Tailwind configurado (modo oscuro implementado)
+- CalendarioCustom implementado (sin Big Calendar)
+- Sistema de rutas por roles
+- Layouts base (Usuario/Admin)
+- Bottom Navigation por rol
+- Componentes UI base (Button, Card, Badge, Input, Modal, MiniCalendario)
+- Login mockup con selección de rol
+- Paleta de colores aplicada
 
-**Checkpoint:** ✅ Navegación funciona, calendario custom renderiza
-**Pendiente:** Implementar temas claro/noche adicionales
+**Checkpoint:** Navegación funciona, calendario custom renderiza
+**Pendiente:** Temas claro/noche adicionales
 
 ---
 
-### **📅 SEMANA 2: Vista Usuario - Core (8-14 Dic)** ✅ COMPLETADA
-**Entregables:**
-- ✅ **Home Usuario**: Buscador + Categorías + "Próximo entrenamiento"
-- ✅ **Rutinas/Library**: Lista con filtros (Bicicleta/Running/Fuerza/Natación/Otro)
-- ✅ **Detalle de Rutina**: 
-  - ✅ Nombre, descripción, duración, nivel
-  - ✅ Calorías, categoría
-  - ✅ Lista de ejercicios paso a paso
-  - ⚠️ Video tutorial (estructura preparada, sin URLs reales)
-  - ✅ Botón "Programar en Calendario" (con MiniCalendario)
-  - ✅ Botón "Iniciar Entrenamiento" (pantalla completa con timer y ejercicios)
-- ✅ **Marcar como completada**
-- ✅ Datos mock de rutinas (mockWorkouts.js)
 
-**Checkpoint:** ✅ Usuario puede buscar, ver y programar rutinas, iniciar entrenamientos y registrar progreso
+### 📅 Semana 2: Vista Usuario - Core (8-14 Dic) ✅ COMPLETADA
+**Entregables:**
+- Home Usuario: Buscador + Categorías + "Próximo entrenamiento"
+- Rutinas/Library: Lista con filtros (Bicicleta/Running/Fuerza/Natación/Otro)
+- Detalle de Rutina: Nombre, descripción, duración, nivel, calorías, categoría, lista de ejercicios paso a paso, estructura para video tutorial, botones para programar en calendario e iniciar entrenamiento
+- Marcar como completada
+- Datos mock de rutinas (mockWorkouts.js)
+
+**Checkpoint:** Usuario puede buscar, ver y programar rutinas, iniciar entrenamientos y registrar progreso
 **Pendiente:** Mejoras en video y feedback visual
 
 ---
 
-### **📅 SEMANA 3: Calendario Usuario (15-21 Dic)** ✅ COMPLETADA (90%)
-**Entregables:**
-- ✅ **Vista Calendario Usuario**:
-  - ✅ Vista personalizada (CalendarioCustom)
-  - ✅ Workouts visualizados with colores por categoría
-  - ✅ Click en día → agregar workout (con MiniCalendario)
-  - ✅ Click en workout → ver detalle / marcar completado
-- ✅ **Integración con Rutinas**:
-  - ✅ Desde "Detalle de Rutina" → "Programar en Calendario"
-  - ✅ MiniCalendario de selección de fecha
-  - ✅ Marcar completada desde Rutinas → aparece en calendario
-- ✅ **Estados visuales**:
-  - ✅ Pendiente (color normal)
-  - ✅ Completado (✅ verde con opacidad)
-- ✅ **Contador de racha**: Días consecutivos entrenando con badge especial 7+ días
-- ✅ **Sistema unificado**: ScheduleContext maneja todo (progreso + calendario)
-- ✅ **Card "Rutina de Hoy"**: Muestra próximo entrenamiento pendiente funcional
-- ✅ **Stats de semana**: Contador lunes a domingo automático
 
-**Checkpoint:** ✅ Sistema completo de calendario y progreso funcionando
+### 📅 Semana 3: Calendario Usuario (15-21 Dic) ✅ COMPLETADA (90%)
+**Entregables:**
+- Vista Calendario Usuario: Vista personalizada (CalendarioCustom), workouts visualizados con colores por categoría, agregar workout por día, ver detalle/marcar completado
+- Integración con Rutinas: Programar desde detalle, selección de fecha, marcar completada desde Rutinas
+- Estados visuales: Pendiente (color normal), Completado (verde con opacidad)
+- Contador de racha: Días consecutivos entrenando con badge especial 7+ días
+- Sistema unificado: ScheduleContext maneja progreso y calendario
+- Card "Rutina de Hoy": Próximo entrenamiento pendiente
+- Stats de semana: Contador lunes a domingo automático
+
+**Checkpoint:** Sistema completo de calendario y progreso funcionando
 **Pendiente:** Drag & Drop, estados vencidos (opcionales)
 
 ---
 
-### **📅 SEMANA 4: Progreso + Gamificación (22-28 Dic)** ⏳ EN PROGRESO
-**Entregables:**
-- ✅ **Gráficos de progreso** (Recharts) - Implementados en `Progreso.jsx`:
-  - ✅ Entrenamientos últimos 7 días (gráfico de barras)
-  - ✅ Minutos por semana - últimas 4 semanas (gráfico de área)
-  - ✅ Calorías por semana - últimas 4 semanas (gráfico de línea)
-  - ✅ Distribución por categoría (lista visual con colores)
-  - ✅ Stats Cards: Esta Semana, Racha, Minutos Totales, Calorías Quemadas
-  - ✅ Total completados con diseño destacado
-  - ❌ Adherencia mensual (calendario de calor) - pendiente
-- ✅ **Contador de entrenamientos**: Funcional (completados locales desde ScheduleContext)
-- ✅ **Funcionalidad Iniciar Entrenamiento**: Timer, ejercicios, calorías estimadas y registro automático
-- ❗️ **Sistema de Medallas**: 
-  - ✅ Visualización y lógica de medallas/logros en Progreso.jsx
-- ❌ **Performance Metrics**: 3 indicadores (Fatigue/Fitness/Form) - pendiente
-- ❌ **Perfil Usuario**: Stats generales + configuración + tema - pendiente
 
-**Checkpoint:** ✅ Usuario ve su progreso con gráficos, estadísticas, medallas y puede iniciar entrenamientos
+### 📅 Semana 4: Progreso + Gamificación (22-28 Dic) ⏳ EN PROGRESO
+**Entregables:**
+- Gráficos de progreso (Recharts) en Progreso.jsx: entrenamientos últimos 7 días (barras), minutos por semana (área), calorías por semana (línea), distribución por categoría, stats cards, total completados
+- Adherencia mensual (pendiente)
+- Contador de entrenamientos (ScheduleContext)
+- Funcionalidad Iniciar Entrenamiento: Timer, ejercicios, calorías estimadas y registro automático
+- Sistema de Medallas: Visualización y lógica de medallas/logros en Progreso.jsx
+- Performance Metrics (pendiente)
+- Perfil Usuario (pendiente)
+
+**Checkpoint:** Usuario ve su progreso con gráficos, estadísticas, medallas y puede iniciar entrenamientos
 **Pendiente:** Performance Metrics, Adherencia mensual, Perfil Usuario
 
 ---
 
 
-### **📅 SEMANA 5: Integración Supabase (29 Dic - 4 Ene)** ⏳ PENDIENTE
-**Entregables:**
-- ⚠️ Conexión inicial a Supabase
-- ❌ CRUD de rutinas y ejercicios desde Admin
-- ❌ Reemplazo de datos mock por datos reales
-- ❌ Autenticación real con Supabase Auth
 
-**Checkpoint:** ❌ App conectada a base de datos real
+### 📅 Semana 5: Integración Supabase (29 Dic - 4 Ene) ⏳ PENDIENTE
+**Entregables:**
+- Conexión inicial a Supabase
+- CRUD de rutinas y ejercicios desde Admin (pendiente)
+- Reemplazo de datos mock por datos reales (pendiente)
+- Autenticación real con Supabase Auth (pendiente)
+
+**Checkpoint:** App conectada a base de datos real (pendiente)
 **Estado:** Solo estructura base
 
 ---
 
-### **📅 SEMANA 6: Vista Admin + Integración (5-11 Ene)** ⏳ PENDIENTE
-**Entregables:**
-- ⚠️ **Dashboard Admin**: UI base creada, sin funcionalidad
-- ❌ **Gestión de Usuarios**:
-  - Lista completa
-  - Crear/editar/eliminar
-  - Asignar entrenadora
-  - Ver calendario del usuario
-- ❌ **Gestión de Entrenadores**:
-  - Lista
-  - Crear/editar/eliminar
-  - Ver usuarios asignados
-- ❌ **Configuración del Sistema**:
-  - Categorías de rutinas
-  - Niveles de dificultad
-  - Sistema de medallas
-  - Configuración de calendario
-- ❌ **Integración completa** entre roles
 
-**Checkpoint:** ❌ Admin puede gestionar todo el sistema
+### 📅 Semana 6: Vista Admin + Integración (5-11 Ene) ⏳ PENDIENTE
+**Entregables:**
+- Dashboard Admin: UI base creada, sin funcionalidad
+- Gestión de Usuarios: lista, crear/editar/eliminar, asignar entrenadora, ver calendario del usuario (pendiente)
+- Gestión de Entrenadores: lista, crear/editar/eliminar, ver usuarios asignados (pendiente)
+- Configuración del Sistema: categorías de rutinas, niveles de dificultad, sistema de medallas, configuración de calendario (pendiente)
+- Integración completa entre roles (pendiente)
+
+**Checkpoint:** Admin puede gestionar todo el sistema (pendiente)
 **Estado:** Solo estructura base
 
 ---
 
-### **📅 SEMANA 7: Polish + Testing (12-18 Ene)** ⏳ PENDIENTE
-**Entregables:**
-- ❌ **Refinamiento UI**: Animaciones, transiciones, micro-interacciones
-- ⚠️ **Calendario optimizado**:
-  - ✅ Funcionalidad básica implementada
-  - ❌ Rendimiento con muchos workouts
-  - ⚠️ Responsive parcial (falta tablet)
-  - ❌ Touch gestures en móvil
-- ❌ **Responsive completo**: Todas las pantallas
-- ❌ **Testing exhaustivo**: Todos los flujos
-- ❌ **Bug fixing**
-- ⚠️ **Documentación**: README actualizado, falta completar
-- ❌ **Performance optimization**
-- ❌ **Preparar para Supabase**: Estructura de datos definida
 
-**Checkpoint:** ❌ App lista para producción
+### 📅 Semana 7: Polish + Testing (12-18 Ene) ⏳ PENDIENTE
+**Entregables:**
+- Refinamiento UI: Animaciones, transiciones, micro-interacciones
+- Calendario optimizado: funcionalidad básica implementada, rendimiento con muchos workouts (pendiente), responsive parcial (falta tablet), touch gestures en móvil (pendiente)
+- Responsive completo (pendiente)
+- Testing exhaustivo (pendiente)
+- Bug fixing (pendiente)
+- Documentación: README actualizado, falta completar
+- Performance optimization (pendiente)
+- Preparar para Supabase: estructura de datos definida
+
+**Checkpoint:** App lista para producción (pendiente)
 **Estado:** Fase no iniciada
 
 ---
 
-### **📅 BUFFER (19 Ene - 1 Feb)**
-- 🔧 Imprevistos
-- 🎨 Ajustes de diseño
-- 🐛 Bugs adicionales
-- 📝 Documentación extra
+
+### 📅 Buffer (19 Ene - 1 Feb)
+- Imprevistos
+- Ajustes de diseño
+- Bugs adicionales
+- Documentación extra
 
 ---
 
-## 🚀 **ESTRUCTURA DE CARPETAS**
-```
+
+---
+
+## 🚀 Estructura de Carpetas
+```text
 pulso100-v2/
 ├── public/
 │   └── logo-pulso100.png

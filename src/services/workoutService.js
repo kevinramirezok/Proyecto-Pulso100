@@ -247,3 +247,78 @@ export const getWorkoutById = async (id) => {
       }))
   };
 };
+// ==================== USUARIOS ====================
+
+// Obtener todos los usuarios
+export const getUsers = async () => {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error al obtener usuarios:', error);
+    return [];
+  }
+  return data;
+};
+
+// Obtener usuario por ID
+export const getUserById = async (id) => {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error al obtener usuario:', error);
+    return null;
+  }
+  return data;
+};
+
+// Obtener entrenamientos programados de un usuario
+export const getUserScheduledWorkouts = async (userId) => {
+  const { data, error } = await supabase
+    .from('scheduled_workouts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('scheduled_date', { ascending: false });
+  
+  if (error) {
+    console.error('Error al obtener entrenamientos del usuario:', error);
+    return [];
+  }
+  return data;
+};
+
+// Actualizar rol de usuario
+export const updateUserRole = async (id, role) => {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .update({ role })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error al actualizar rol:', error);
+    throw error;
+  }
+  return data;
+};
+
+// Eliminar usuario
+export const deleteUser = async (id) => {
+  const { error } = await supabase
+    .from('user_profiles')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error al eliminar usuario:', error);
+    throw error;
+  }
+  return true;
+};
