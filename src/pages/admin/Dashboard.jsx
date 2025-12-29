@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [workouts, setWorkouts] = useState([]);
-  const [completedCount, setCompletedCount] = useState(null);
+  const [completedCount, setCompletedCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -38,16 +38,16 @@ export default function Dashboard() {
         ]);
         let totalCompleted = 0;
         // Sumar entrenamientos completados de todos los usuarios
-        if (usersData && usersData.length > 0) {
+        if (usersData && Array.isArray(usersData) && usersData.length > 0) {
           // Se puede optimizar con una función agregada en el backend, pero aquí se hace por usuario
           const completedArrays = await Promise.all(
             usersData.map(u => getCompletedWorkouts(u.id, 1_000))
           );
-          totalCompleted = completedArrays.reduce((acc, arr) => acc + (arr?.length || 0), 0);
+          totalCompleted = completedArrays.reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
         }
         if (isMounted) {
-          setUsers(usersData || []);
-          setWorkouts(workoutsData || []);
+          setUsers(Array.isArray(usersData) ? usersData : []);
+          setWorkouts(Array.isArray(workoutsData) ? workoutsData : []);
           setCompletedCount(totalCompleted);
         }
       } catch (e) {
@@ -62,11 +62,26 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, []);
 
+  // Calcular estadísticas adicionales
+  const categoryCounts = workouts.reduce((acc, workout) => {
+    const category = workout?.category || 'Sin categoría';
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {});
+
+  const levelCounts = workouts.reduce((acc, workout) => {
+    const level = workout?.level || 'Sin nivel';
+    acc[level] = (acc[level] || 0) + 1;
+    return acc;
+  }, {});
+
   // Estadísticas globales
   const stats = {
-    totalUsers: users.length,
-    totalWorkouts: workouts.length,
-    totalCompleted: completedCount,
+    totalUsers: users.length || 0,
+    totalWorkouts: workouts.length || 0,
+    totalCompleted: completedCount || 0,
+    categoryCounts,
+    levelCounts,
   };
 
   const menuItems = [
@@ -180,7 +195,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Entrenamientos Completados</p>
-              <p className="text-white text-2xl font-bold">{stats.totalCompleted !== null ? stats.totalCompleted : '-'}</p>
+              <p className="text-white text-2xl font-bold">{stats.totalCompleted}</p>
             </div>
           </div>
         </Card>
@@ -204,15 +219,15 @@ export default function Dashboard() {
         <Card>
           <h3 className="text-white font-semibold mb-4">Rutinas por Categoría</h3>
           <div className="space-y-3">
-            {Object.entries(stats.categoryCounts).length > 0 ? (
-              Object.entries(stats.categoryCounts).map(([category, count]) => (
+            {!loading && Object.entries(stats.categoryCounts || {}).length > 0 ? (
+              Object.entries(stats.categoryCounts || {}).map(([category, count]) => (
                 <div key={category} className="flex items-center justify-between">
                   <span className="text-gray-400 capitalize">{category}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-pulso-rojo rounded-full"
-                        style={{ width: `${(count / stats.totalWorkouts) * 100}%` }}
+                        style={{ width: `${stats.totalWorkouts > 0 ? (count / stats.totalWorkouts) * 100 : 0}%` }}
                       />
                     </div>
                     <span className="text-white font-medium w-8 text-right">{count}</span>
@@ -228,15 +243,15 @@ export default function Dashboard() {
         <Card>
           <h3 className="text-white font-semibold mb-4">Rutinas por Nivel</h3>
           <div className="space-y-3">
-            {Object.entries(stats.levelCounts).length > 0 ? (
-              Object.entries(stats.levelCounts).map(([level, count]) => (
+            {!loading && Object.entries(stats.levelCounts || {}).length > 0 ? (
+              Object.entries(stats.levelCounts || {}).map(([level, count]) => (
                 <div key={level} className="flex items-center justify-between">
                   <span className="text-gray-400">{level}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-green-500 rounded-full"
-                        style={{ width: `${(count / stats.totalWorkouts) * 100}%` }}
+                        style={{ width: `${stats.totalWorkouts > 0 ? (count / stats.totalWorkouts) * 100 : 0}%` }}
                       />
                     </div>
                     <span className="text-white font-medium w-8 text-right">{count}</span>

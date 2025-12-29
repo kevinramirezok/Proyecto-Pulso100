@@ -1,14 +1,9 @@
     import { useState, useEffect } from 'react';
     import { Link, useNavigate } from 'react-router-dom';
-    import { Eye, EyeOff, User, Shield, Mail, Lock, UserPlus } from 'lucide-react';
+    import { Eye, EyeOff, User, Mail, Lock, UserPlus } from 'lucide-react';
     import { useAuth } from '../../context/AuthContext';
     import Input from '../../components/ui/Input';
     import Button from '../../components/ui/Button';
-
-    const ROLES = [
-    { key: 'usuario', label: 'Usuario', icon: User, description: 'Acceso a entrenamientos y seguimiento' },
-    { key: 'admin', label: 'Administrador', icon: Shield, description: 'Gestión completa del sistema' },
-    ];
 
     export default function Register() {
     const navigate = useNavigate();
@@ -18,7 +13,6 @@
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'usuario',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -30,9 +24,8 @@
     useEffect(() => {
         console.log('🔵 [REGISTER] useEffect - isAuthenticated:', isAuthenticated, 'role:', role);
         if (isAuthenticated) {
-            const redirectPath = role === 'admin' ? '/admin/dashboard' : '/usuario/home';
-            console.log('🔵 [REGISTER] Autenticado detectado, redirigiendo a:', redirectPath);
-            navigate(redirectPath, { replace: true });
+            console.log('🔵 [REGISTER] Autenticado detectado, redirigiendo a /usuario/home');
+            navigate('/usuario/home', { replace: true });
         }
     }, [isAuthenticated, role, navigate]);
 
@@ -77,14 +70,13 @@
         setLoading(true);
         setError('');
 
-        console.log('🔵 [REGISTER] ANTES DE LLAMAR signUp()...', { email: formData.email, role: formData.role });
+        console.log('🔵 [REGISTER] ANTES DE LLAMAR signUp()...', { email: formData.email });
         
         try {
           const result = await signUp(
             formData.email,
             formData.password,
-            formData.name,
-            formData.role
+            formData.name
           );
           
           console.log('🔵 [REGISTER] DESPUES DE AWAIT - signUp() retornó:', result);
@@ -216,35 +208,6 @@
                 >
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
-            </div>
-
-            <div>
-                <label className="block mb-3 text-gray-400 font-medium text-sm">
-                Tipo de cuenta
-                </label>
-                <div className="grid grid-cols-1 gap-3">
-                {ROLES.map(({ key, label, icon: Icon, description }) => (
-                    <button
-                    key={key}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, role: key })}
-                    className={`
-                        flex items-start gap-3 p-4 rounded-lg
-                        border-2 transition-all duration-200 text-left
-                        ${formData.role === key 
-                        ? 'bg-pulso-rojo/10 border-pulso-rojo text-white' 
-                        : 'bg-pulso-negro border-gray-700 text-gray-400 hover:border-pulso-rojo/50'
-                        }
-                    `}
-                    >
-                    <Icon size={24} className={formData.role === key ? 'text-pulso-rojo' : ''} />
-                    <div className="flex-1">
-                        <div className="font-medium text-sm">{label}</div>
-                        <div className="text-xs opacity-75 mt-1">{description}</div>
-                    </div>
-                    </button>
-                ))}
-                </div>
             </div>
 
             <Button 

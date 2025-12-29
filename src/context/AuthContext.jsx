@@ -102,8 +102,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Registro de nuevo usuario
-  const signUp = (email, password, name, role = 'usuario') => {
-    console.log('🟢 [AUTH] signUp() iniciado:', { email, name, role });
+  const signUp = (email, password, name) => {
+    console.log('🟢 [AUTH] signUp() iniciado:', { email, name });
     console.log('🟢 [AUTH] PASO 1: Creando objeto de signUp...');
     
     const signUpPromise = supabase.auth.signUp({
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }) => {
 
       console.log('🟢 [AUTH] PASO 4B: Sin error, procesando usuario...');
       
-      // Crear perfil en background
+      // Crear perfil en background (el rol se asignará automáticamente en la BD)
       if (authData.user) {
         console.log('🟢 [AUTH] PASO 5: Usuario existe, creando perfil...');
         supabase
@@ -132,7 +132,6 @@ export const AuthProvider = ({ children }) => {
             id: authData.user.id,
             name,
             email,
-            role,
           }, {
             onConflict: 'id'
           })
