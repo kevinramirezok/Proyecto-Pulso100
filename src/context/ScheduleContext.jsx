@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import * as scheduleService from '../services/scheduleService';
 import * as progressService from '../services/progressService';
@@ -12,17 +12,8 @@ export const ScheduleProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cargar datos cuando el usuario cambie
-  useEffect(() => {
-    if (user?.id) {
-      loadScheduledWorkouts();
-    } else {
-      setScheduledWorkouts([]);
-    }
-  }, [user?.id]);
-
   // Cargar entrenamientos agendados desde Supabase
-  const loadScheduledWorkouts = async () => {
+  const loadScheduledWorkouts = useCallback(async () => {
     if (!user?.id) return;
     
     setLoading(true);
@@ -37,9 +28,24 @@ export const ScheduleProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const scheduleWorkout = async (workout, date) => {
+  // Cargar datos cuando el usuario cambie
+  useEffect(() => {
+    let isMounted = true;
+    
+    if (user?.id && isMounted) {
+      loadScheduledWorkouts();
+    } else {
+      setScheduledWorkouts([]);
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, loadScheduledWorkouts]);
+
+  const scheduleWorkout = useCallback(async (workout, date) => {
     if (!user?.id) {
       setError('Debe iniciar sesión para agendar');
       return;
@@ -58,9 +64,9 @@ export const ScheduleProvider = ({ children }) => {
       setError('Error al agendar entrenamiento');
       throw err;
     }
-  };
+  }, [user?.id]);
 
-  const completeScheduledWorkout = async (scheduleId) => {
+  const completeScheduledWorkout = useCallback(async (scheduleId) => {
     if (!user?.id) return;
 
     try {
@@ -92,9 +98,9 @@ export const ScheduleProvider = ({ children }) => {
       setError('Error al completar entrenamiento');
       throw err;
     }
-  };
+  }, [user?.id, scheduledWorkouts]);
 
-  const deleteScheduledWorkout = async (scheduleId) => {
+  const deleteScheduledWorkout = useCallback(async (scheduleId) => {
     if (!user?.id) return;
 
     try {
@@ -105,25 +111,23 @@ export const ScheduleProvider = ({ children }) => {
       setError('Error al eliminar entrenamiento');
       throw err;
     }
-  };
+  }, [user?.id]);
 
-  const getWorkoutsForDate = (date) => {
+  const getWorkoutsForDate = useCallback((date) => {
     const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
     return scheduledWorkouts.filter(
       s => s.scheduled_date === dateStr
     );
-  };
+  }, [scheduledWorkouts]);
 
   // Completar workout HOY (para usar desde Rutinas - sin agendar previo)
-  const completeWorkoutToday = async (workout) => {
+  const completeWorkoutToday = useCallback(async (workout) => {
     if (!user?.id) {
       setError('Debe iniciar sesión');
       return;
     }
 
     try {
-      const hoy = new Date().toISOString().split('T')[0];
-
       // Registrar en completed_workouts
       await progressService.completeWorkout(
         user.id,
@@ -143,26 +147,23 @@ export const ScheduleProvider = ({ children }) => {
       setError('Error al registrar entrenamiento');
       throw err;
     }
-  };
+  }, [user?.id, loadScheduledWorkouts]);
 
-  // Obtener total de entrenamientos completados
-  const getTotalCompleted = () => {
+  // Memoizar valores calculados
+  const totalCompleted = useMemo(() => {
     return scheduledWorkouts.filter(w => w.status === 'completado').length;
-  };
+  }, [scheduledWorkouts]);
 
-  // Obtener racha (requiere query a completed_workouts, se implementa en getUserStats)
-  const getStreak = () => {
-    // Esta función ahora debería usar progressService.getUserStats()
-    // Por compatibilidad, retornamos 0 y se debe usar el hook useProgress
-    return 0;
-  };
+  const refreshSchedule = useCallback(async () => {
+    await loadScheduledWorkouts();
+  }, [loadScheduledWorkouts]);
 
   // Verificar si un workout ya fue completado
-  const isWorkoutCompleted = (workoutId) => {
+  const isWorkoutCompleted = useCallback((workoutId) => {
     return scheduledWorkouts.some(
       w => w.workout_id === workoutId && w.status === 'completado'
     );
-  };
+  }, [scheduledWorkouts]);
 
   return (
     <ScheduleContext.Provider
@@ -174,11 +175,10 @@ export const ScheduleProvider = ({ children }) => {
         completeScheduledWorkout,
         deleteScheduledWorkout,
         getWorkoutsForDate,
-        getStreak,
         completeWorkoutToday,
-        getTotalCompleted,
         isWorkoutCompleted,
-        refreshSchedule: loadScheduledWorkouts,
+        totalCompleted,
+        refreshSchedule
       }}
     >
       {children}

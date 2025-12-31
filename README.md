@@ -4,17 +4,70 @@
 
 ### **Tu límite es el siguiente pulso**
 
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![React Router](https://img.shields.io/badge/React_Router-v7-CA4245?logo=react-router&logoColor=white)](https://reactrouter.com/)
 
-**Plataforma de entrenamiento personalizado que conecta usuarios con entrenadoras virtuales**
+**Plataforma de entrenamiento personalizado con sistema de gamificación y seguimiento de progreso**
 
-[🚀 Ver Demo](https://proyecto-pulso100.vercel.app) | [📖 Documentación](#-arquitectura-técnica) | [🐛 Reportar Bug](https://github.com/kevinramirezok/Proyecto-Pulso100/issues)
+[🚀 Ver Demo](https://proyecto-pulso100.vercel.app) | [📖 Documentación](#-arquitectura-técnica) | [🐛 Reportar Bug](https://github.com/usuario/Proyecto-Pulso100/issues)
 
 </div>
+
+---
+
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+
+- Node.js 18+ 
+- npm o yarn
+- Cuenta en Supabase (gratuita)
+
+### Instalación
+
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/usuario/Proyecto-Pulso100.git
+cd Proyecto-Pulso100
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Edita .env con tus credenciales de Supabase
+```
+
+### Configuración de Supabase
+
+1. Crear proyecto en [Supabase](https://supabase.com)
+2. Copiar credenciales del proyecto:
+   - Project URL
+   - Anon/Public Key
+
+3. Actualizar archivo `.env`:
+```env
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+VITE_SUPABASE_ANON_KEY=tu_anon_key_aqui
+```
+
+4. Ejecutar migraciones SQL (ver carpeta `/database`)
+
+### Ejecutar en desarrollo
+
+```bash
+npm run dev
+# Abre http://localhost:5173
+```
+
+### Build para producción
+
+```bash
+npm run build
+npm run preview
+```
 
 ---
 

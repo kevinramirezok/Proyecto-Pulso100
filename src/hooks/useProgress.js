@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as progressService from '../services/progressService';
 import * as medalService from '../services/medalService';
@@ -19,22 +19,14 @@ export const useProgress = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadProgress();
-    } else {
-      resetProgress();
-    }
-  }, [user?.id]);
-
-  const loadProgress = async () => {
+  const loadProgress = useCallback(async () => {
     if (!user?.id) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // Cargar stats y medals en paralelo (lo más crítico primero)
+      // Fase 1: Cargar lo crítico primero (stats y medals desbloqueadas)
       const [statsData, medalsData] = await Promise.all([
         progressService.getUserStats(user.id),
         medalService.getUserMedals(user.id),
@@ -42,24 +34,41 @@ export const useProgress = () => {
 
       setStats(statsData);
       setMedals(medalsData);
+      setLoading(false); // Mostrar UI básica ya
 
-      // Cargar datos secundarios después (lazy)
-      const [completedData, progressData] = await Promise.all([
-        progressService.getCompletedWorkouts(user.id, 30), // Solo últimos 30 para gráficos
+      // Fase 2: Cargar datos secundarios en background (sin bloquear UI)
+      Promise.all([
+        progressService.getCompletedWorkouts(user.id, 30),
         medalService.getMedalsProgress(user.id),
-      ]);
+      ]).then(([completedData, progressData]) => {
+        setCompletedWorkouts(completedData);
+        setMedalsProgress(progressData);
+      }).catch(err => {
+        console.error('Error cargando datos secundarios:', err);
+      });
 
-      setCompletedWorkouts(completedData);
-      setMedalsProgress(progressData);
     } catch (err) {
       console.error('Error cargando progreso:', err);
       setError('Error al cargar progreso');
-    } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const resetProgress = () => {
+  useEffect(() => {
+    let isMounted = true;
+    
+    if (user?.id && isMounted) {
+      loadProgress();
+    } else {
+      resetProgress();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, loadProgress]);
+
+  const resetProgress = useCallback(() => {
     setStats({
       totalCompleted: 0,
       totalMinutes: 0,
@@ -71,11 +80,18 @@ export const useProgress = () => {
     setCompletedWorkouts([]);
     setMedals([]);
     setMedalsProgress([]);
-  };
+  }, []);
 
-  const refreshProgress = async () => {
+  const refreshProgress = useCallback(async () => {
     await loadProgress();
-  };
+  }, [loadProgress]);
+
+  // Memoizar valores calculados
+  const totalMedals = useMemo(() => medals.length, [medals.length]);
+  const medalCompletionRate = useMemo(() => {
+    if (medalsProgress.length === 0) return 0;
+    return Math.round((medals.length / medalsProgress.length) * 100);
+  }, [medals.length, medalsProgress.length]);
 
   return {
     stats,
@@ -85,5 +101,8 @@ export const useProgress = () => {
     loading,
     error,
     refreshProgress,
+    // Valores calculados optimizados
+    totalMedals,
+    medalCompletionRate,
   };
 };

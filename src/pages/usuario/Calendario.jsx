@@ -8,6 +8,7 @@ import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import { CheckCircle, Trash2, Clock, Plus, Dumbbell, ArrowLeft, Flame, X, Search, Play } from 'lucide-react';
 import { useEntrenamiento } from '../../context/EntrenamientoContext';
+import { formatearFechaLocal } from '../../utils/dateUtils';
 
 const CATEGORIES = [
   { key: 'all', label: 'Todas' },
@@ -57,11 +58,10 @@ export default function Calendario() {
   const handleAgregarEntrenamiento = async (rutina) => {
     if (!selectedDate) return;
     
-    const fechaStr = selectedDate.toISOString().split('T')[0];
+    const fechaStr = formatearFechaLocal(selectedDate);
     
     try {
       await scheduleWorkout(rutina, fechaStr);
-      // El context ya actualiza scheduledWorkouts automáticamente
       setShowAddWorkout(false);
       setSearchTerm('');
     } catch (error) {

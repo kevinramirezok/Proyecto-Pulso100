@@ -91,7 +91,6 @@ export const unlockMedal = async (userId, medalId) => {
   if (error) {
     // Si es error de duplicado (23505), significa que ya tiene la medalla
     if (error.code === '23505') {
-      console.log('Medalla ya desbloqueada previamente:', medalId);
       return null; // No es un error real, solo ya existe
     }
     console.error('Error al desbloquear medalla:', error);
@@ -114,6 +113,7 @@ export const checkAndUnlockMedals = async (userId) => {
     
     // Obtener medallas ya desbloqueadas
     const userMedals = await getUserMedals(userId);
+    
     const unlockedIds = new Set(userMedals.map(um => um.medal.id));
     
     const newlyUnlocked = [];
@@ -121,7 +121,9 @@ export const checkAndUnlockMedals = async (userId) => {
     // Verificar cada medalla
     for (const medal of allMedals) {
       // Si ya la tiene, skip
-      if (unlockedIds.has(medal.id)) continue;
+      if (unlockedIds.has(medal.id)) {
+        continue;
+      }
       
       // Verificar si cumple el requisito
       const meetsRequirement = checkMedalRequirement(medal, stats);

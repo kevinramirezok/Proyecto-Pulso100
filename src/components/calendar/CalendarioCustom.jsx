@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { formatearFechaLocal } from '../../utils/dateUtils';
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const DIAS_SEMANA = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -44,7 +45,7 @@ export default function CalendarioCustom({ scheduledWorkouts, onDayClick }) {
   };
 
   const getWorkoutsDelDia = (fecha) => {
-    const fechaStr = fecha.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    const fechaStr = formatearFechaLocal(fecha); // Usar función local sin UTC
     return scheduledWorkouts.filter(
       sw => sw.scheduled_date === fechaStr
     );

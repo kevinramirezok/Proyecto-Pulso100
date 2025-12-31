@@ -22,9 +22,7 @@
 
     // Redirigir si ya está autenticado
     useEffect(() => {
-        console.log('🔵 [REGISTER] useEffect - isAuthenticated:', isAuthenticated, 'role:', role);
         if (isAuthenticated) {
-            console.log('🔵 [REGISTER] Autenticado detectado, redirigiendo a /usuario/home');
             navigate('/usuario/home', { replace: true });
         }
     }, [isAuthenticated, role, navigate]);
@@ -59,19 +57,14 @@
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        console.log('🔵 [REGISTER] INICIO: handleRegister ejecutado');
         
         if (!validateForm()) {
-        console.log('❌ [REGISTER] Validación fallida');
         return;
         }
         
-        console.log('🔵 [REGISTER] Validación OK, seteando loading=true');
         setLoading(true);
         setError('');
 
-        console.log('🔵 [REGISTER] ANTES DE LLAMAR signUp()...', { email: formData.email });
-        
         try {
           const result = await signUp(
             formData.email,
@@ -79,14 +72,9 @@
             formData.name
           );
           
-          console.log('🔵 [REGISTER] DESPUES DE AWAIT - signUp() retornó:', result);
-          
           const { data, error: signUpError } = result;
 
-          console.log('🔵 [REGISTER] Resultado destructurado:', { data, error: signUpError });
-
           if (signUpError) {
-            console.log('❌ [REGISTER] Error en signUp:', signUpError);
             if (signUpError.message.includes('already registered')) {
                 setError('Este email ya está registrado');
             } else if (signUpError.message.includes('invalid email')) {
@@ -98,20 +86,12 @@
             return;
           }
 
-          // Registro exitoso
-          if (data.user) {
-            console.log('✅ [REGISTER] Usuario creado:', data.user.id);
-            console.log('🔵 [REGISTER] Esperando autenticación automática y redirección...');
-            
-            // NO hacer setLoading(false) aquí - dejar que el botón siga en loading
-            // hasta que AuthRedirect redirija automáticamente cuando isAuthenticated=true
-            // El loading se mantendrá hasta la redirección
-          } else {
-            console.log('❌ [REGISTER] No hay data.user');
+          // Registro exitoso - Mantener loading hasta redirección automática
+          if (!data.user) {
             setLoading(false);
           }
         } catch (err) {
-          console.error('❌ [REGISTER] Error en try/catch:', err);
+          console.error('Error inesperado al registrar:', err);
           setError('Error inesperado al registrar');
           setLoading(false);
         }

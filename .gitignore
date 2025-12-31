@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (⚠️ NUNCA subir a GitHub)
+.env
+.env.local
+.env.production
+.env.development
+
+# Documentación interna (no subir a GitHub)
+ERRORES-IMPORTANTES.md
+MEJORAS-UX-INTERACTIVIDAD.md
+TESTING-REFACTOR.md
+DESARROLLO.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

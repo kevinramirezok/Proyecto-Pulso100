@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { ScheduleProvider, useSchedule } from './context/ScheduleContext';
 import { EntrenamientoProvider, useEntrenamiento } from './context/EntrenamientoContext';
 import { WorkoutProvider } from './context/WorkoutContext';
+import { useProgress } from './hooks/useProgress';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import EntrenamientoActivo from './components/features/EntrenamientoActivo';
@@ -26,10 +27,7 @@ function ProtectedRoute({ children, requiredRole }) {
   const { isAuthenticated, loading, role } = useAuth();
   const location = useLocation();
   
-  console.log('🔴 [PROTECTED] Verificando acceso:', { isAuthenticated, loading, role, requiredRole, path: location.pathname });
-  
   if (loading) {
-    console.log('🔴 [PROTECTED] Loading=true, mostrando pantalla de carga');
     return (
       <div className="min-h-screen flex items-center justify-center bg-pulso-negro">
         <div className="text-white text-xl">Cargando...</div>
@@ -38,18 +36,15 @@ function ProtectedRoute({ children, requiredRole }) {
   }
   
   if (!isAuthenticated) {
-    console.log('🔴 [PROTECTED] No autenticado, redirigiendo a /');
     return <Navigate to="/" state={{ from: location }} replace />;
   }
   
   // Verificar rol si es requerido
   if (requiredRole && role !== requiredRole) {
     const redirectPath = role === 'admin' ? '/admin/dashboard' : '/usuario/home';
-    console.log('🔴 [PROTECTED] Rol incorrecto, redirigiendo a:', redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
   
-  console.log('✅ [PROTECTED] Acceso permitido');
   return children;
 }
 
@@ -58,16 +53,13 @@ function AuthRedirect() {
   const navigate = useNavigate();
   
   useEffect(() => {
-    console.log('🟣 [AUTH_REDIRECT] Estado:', { isAuthenticated, loading, role });
     if (!loading && isAuthenticated) {
       const redirectPath = role === 'admin' ? '/admin/dashboard' : '/usuario/home';
-      console.log('🟣 [AUTH_REDIRECT] Redirigiendo a:', redirectPath);
       navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, loading, role, navigate]);
   
   if (loading) {
-    console.log('🟣 [AUTH_REDIRECT] Mostrando loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-pulso-negro">
         <div className="text-white text-xl">Cargando...</div>
@@ -75,28 +67,29 @@ function AuthRedirect() {
     );
   }
   
-  console.log('🟣 [AUTH_REDIRECT] Mostrando Login');
   return <Login />;
 }
 
 function EntrenamientoActivoGlobal() {
   const { entrenamientoActivo, scheduledWorkoutId, detenerEntrenamiento } = useEntrenamiento();
-  const { completeScheduledWorkout, completeWorkoutToday } = useSchedule();
+  const { refreshSchedule } = useSchedule();
+  const { refreshProgress } = useProgress();
 
   if (!entrenamientoActivo) return null;
 
   return (
     <EntrenamientoActivo
       workout={entrenamientoActivo}
+      scheduledWorkoutId={scheduledWorkoutId}
       onCancel={detenerEntrenamiento}
-      onComplete={(segundos) => {
-        if (scheduledWorkoutId) {
-          completeScheduledWorkout(scheduledWorkoutId);
-        } else {
-          completeWorkoutToday(entrenamientoActivo);
-        }
+      onComplete={async (data) => {
+        // Refrescar los workouts agendados y progreso (medallas, stats)
+        await Promise.all([
+          refreshSchedule(),
+          refreshProgress()
+        ]);
+        // Cerrar el modal
         detenerEntrenamiento();
-        alert(`¡Entrenamiento completado en ${Math.floor(segundos / 60)}:${(segundos % 60).toString().padStart(2, '0')}! 🎉`);
       }}
     />
   );
