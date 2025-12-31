@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { ScheduleProvider, useSchedule } from './context/ScheduleContext';
 import { EntrenamientoProvider, useEntrenamiento } from './context/EntrenamientoContext';
 import { WorkoutProvider } from './context/WorkoutContext';
+import { useProgress } from './hooks/useProgress';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import EntrenamientoActivo from './components/features/EntrenamientoActivo';
@@ -81,22 +82,24 @@ function AuthRedirect() {
 
 function EntrenamientoActivoGlobal() {
   const { entrenamientoActivo, scheduledWorkoutId, detenerEntrenamiento } = useEntrenamiento();
-  const { completeScheduledWorkout, completeWorkoutToday } = useSchedule();
+  const { refreshSchedule } = useSchedule();
+  const { refreshProgress } = useProgress();
 
   if (!entrenamientoActivo) return null;
 
   return (
     <EntrenamientoActivo
       workout={entrenamientoActivo}
+      scheduledWorkoutId={scheduledWorkoutId}
       onCancel={detenerEntrenamiento}
-      onComplete={(segundos) => {
-        if (scheduledWorkoutId) {
-          completeScheduledWorkout(scheduledWorkoutId);
-        } else {
-          completeWorkoutToday(entrenamientoActivo);
-        }
+      onComplete={async (data) => {
+        // Refrescar los workouts agendados y progreso (medallas, stats)
+        await Promise.all([
+          refreshSchedule(),
+          refreshProgress()
+        ]);
+        // Cerrar el modal
         detenerEntrenamiento();
-        alert(`¡Entrenamiento completado en ${Math.floor(segundos / 60)}:${(segundos % 60).toString().padStart(2, '0')}! 🎉`);
       }}
     />
   );

@@ -106,14 +106,20 @@ export const unlockMedal = async (userId, medalId) => {
 // Verificar y desbloquear medallas según progreso del usuario
 export const checkAndUnlockMedals = async (userId) => {
   try {
+    console.log('🏅 checkAndUnlockMedals - Iniciando para userId:', userId);
+    
     // Obtener stats del usuario
     const stats = await getUserStats(userId);
+    console.log('📊 Stats del usuario:', stats);
     
     // Obtener todas las medallas
     const allMedals = await getAllMedals();
+    console.log('🎖️ Total de medallas disponibles:', allMedals.length);
     
     // Obtener medallas ya desbloqueadas
     const userMedals = await getUserMedals(userId);
+    console.log('✅ Medallas ya desbloqueadas:', userMedals.length);
+    
     const unlockedIds = new Set(userMedals.map(um => um.medal.id));
     
     const newlyUnlocked = [];
@@ -121,26 +127,33 @@ export const checkAndUnlockMedals = async (userId) => {
     // Verificar cada medalla
     for (const medal of allMedals) {
       // Si ya la tiene, skip
-      if (unlockedIds.has(medal.id)) continue;
+      if (unlockedIds.has(medal.id)) {
+        console.log(`⏭️ Medalla "${medal.name}" ya desbloqueada, skip`);
+        continue;
+      }
       
       // Verificar si cumple el requisito
       const meetsRequirement = checkMedalRequirement(medal, stats);
+      console.log(`🔍 Medalla "${medal.name}" (${medal.requirement_type}: ${medal.requirement_value}) - Cumple requisito:`, meetsRequirement);
       
       if (meetsRequirement) {
         try {
+          console.log(`🎉 Intentando desbloquear medalla: ${medal.name}`);
           const unlockedMedal = await unlockMedal(userId, medal.id);
           if (unlockedMedal) {
+            console.log(`✨ Medalla "${medal.name}" desbloqueada exitosamente!`);
             newlyUnlocked.push(unlockedMedal);
           }
         } catch (err) {
-          console.error('Error al desbloquear medalla:', medal.name, err);
+          console.error('❌ Error al desbloquear medalla:', medal.name, err);
         }
       }
     }
     
+    console.log('🏆 Total de medallas recién desbloqueadas:', newlyUnlocked.length);
     return newlyUnlocked;
   } catch (error) {
-    console.error('Error en checkAndUnlockMedals:', error);
+    console.error('❌ Error en checkAndUnlockMedals:', error);
     return [];
   }
 };

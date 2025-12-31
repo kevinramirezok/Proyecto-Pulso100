@@ -8,17 +8,18 @@ import Badge from '../../components/ui/Badge';
 import { Flame, Clock, Target, TrendingUp, CheckCircle, Calendar, Play, Dumbbell, Award } from 'lucide-react';
 import { useWorkouts } from '../../context/WorkoutContext';
 import { useEntrenamiento } from '../../context/EntrenamientoContext';
+import { obtenerHoyLocal } from '../../utils/dateUtils';
 
 export default function Home() {
   const { user } = useAuth();
   const { scheduledWorkouts, loading: scheduleLoading } = useSchedule();
-  const { stats } = useProgress();
+  const { stats, medals } = useProgress();
   const navigate = useNavigate();
   const { iniciarEntrenamiento } = useEntrenamiento();
   const { workouts, loading: workoutsLoading } = useWorkouts();
 
   // Obtener entrenamientos de hoy pendientes
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = obtenerHoyLocal();
   const entrenamientosHoy = scheduledWorkouts.filter(w => {
     return w.scheduled_date === hoy && w.status === 'pendiente';
   });
@@ -31,7 +32,7 @@ export default function Home() {
     month: 'long' 
   });
 
-  // Calcular semana actual
+  // Calcular semana actual - DÍAS ÚNICOS con entrenamientos completados
   const getWeekCompleted = () => {
     const hoy = new Date();
     const inicioSemana = new Date(hoy);
@@ -40,9 +41,14 @@ export default function Home() {
     inicioSemana.setDate(hoy.getDate() - diff);
     const inicioStr = inicioSemana.toISOString().split('T')[0];
 
-    return scheduledWorkouts.filter(w => 
-      w.scheduled_date >= inicioStr && w.status === 'completado'
-    ).length;
+    // Obtener fechas únicas de workouts completados esta semana
+    const fechasUnicas = new Set(
+      scheduledWorkouts
+        .filter(w => w.scheduled_date >= inicioStr && w.status === 'completado')
+        .map(w => w.scheduled_date)
+    );
+
+    return fechasUnicas.size;
   };
 
   // Loading profesional
@@ -126,59 +132,54 @@ export default function Home() {
             <>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-white font-bold text-lg">{proximoEntrenamiento.workoutName}</h4>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
+                  <h4 className="text-white font-bold text-lg mb-2">
+                    {proximoEntrenamiento.workout?.name || 'Rutina'}
+                  </h4>
+                  <div className="flex items-center gap-3 text-sm">
                     <span className="flex items-center gap-1.5 text-blue-400">
-                      <Clock size={14} />
-                      {proximoEntrenamiento.workoutDuration} min
+                      <Clock size={20} />
+                      {proximoEntrenamiento.workout?.duration || 0} min
+                    </span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-gray-400">
+                      {proximoEntrenamiento.workout?.level || 'Intermedio'}
                     </span>
                   </div>
                 </div>
-                <Badge variant={proximoEntrenamiento.workoutCategory}>
-                  {proximoEntrenamiento.workoutCategory}
+                <Badge variant={proximoEntrenamiento.workout?.category || 'fuerza'}>
+                  {proximoEntrenamiento.workout?.category || 'Fuerza'}
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex gap-3">
                 <Button 
                   variant="primary"
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => {
-                    const rutinaCompleta = workouts.find(w => w.name === proximoEntrenamiento.workoutName) || {
-                      ...proximoEntrenamiento,
-                      name: proximoEntrenamiento.workoutName,
-                      category: proximoEntrenamiento.workoutCategory,
-                      duration: proximoEntrenamiento.workoutDuration,
-                      exercises: []
-                    };
-                    iniciarEntrenamiento(rutinaCompleta, proximoEntrenamiento.id);
+                    iniciarEntrenamiento(proximoEntrenamiento, proximoEntrenamiento.id);
                   }}
                 >
-                  <Play size={16} className="mr-1" />
+                  <Play size={16} className="mr-2" />
                   Iniciar
                 </Button>
                 <Button 
-                  variant="secondary"
-                  className="w-full"
+                  variant="outline"
+                  className="flex-1"
                   onClick={() => {
                     completeScheduledWorkout(proximoEntrenamiento.id);
-                    alert('¡Entrenamiento completado! 🎉');
                   }}
                 >
-                  <CheckCircle size={16} className="mr-1" />
+                  <CheckCircle size={16} className="mr-2" />
                   Completar
                 </Button>
               </div>
             </>
           ) : (
-            <div className="text-center py-4">
-              <Calendar size={40} className="mx-auto text-gray-600 mb-3" />
-              <p className="text-gray-400 text-sm mb-3">No tenés entrenamientos programados para hoy</p>
+            <div className="text-center py-6">
+              <Calendar size={48} className="mx-auto text-gray-600 mb-3" />
+              <p className="text-gray-400 text-sm mb-4">No tenés entrenamientos programados para hoy</p>
               <Button 
                 variant="primary"
-                size="sm"
                 onClick={() => navigate('/usuario/rutinas')}
               >
                 Ver Rutinas
@@ -241,13 +242,19 @@ export default function Home() {
             className="cursor-pointer hover:border-pulso-rojo/50 transition-all"
             onClick={() => navigate('/usuario/perfil')}
           >
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-500/10 p-2.5 rounded-xl">
-                <Award className="text-purple-500" size={20} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500/10 p-2.5 rounded-xl">
+                  <Award className="text-purple-500" size={20} />
+                </div>
+                <div>
+                  <p className="text-white font-medium">Medallas</p>
+                  <p className="text-gray-500 text-xs">Ver logros</p>
+                </div>
               </div>
-              <div>
-                <p className="text-white font-medium">Medallas</p>
-                <p className="text-gray-500 text-xs">Ver logros</p>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-white">{medals.length}</p>
+                <p className="text-gray-500 text-xs">desbloqueadas</p>
               </div>
             </div>
           </Card>

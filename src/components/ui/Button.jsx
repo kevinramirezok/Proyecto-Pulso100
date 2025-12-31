@@ -12,6 +12,7 @@ export default function Button({
     primary: 'bg-pulso-rojo hover:bg-red-600 text-white',
     secondary: 'bg-pulso-azul hover:bg-pulso-azulClaro text-white',
     outline: 'border-2 border-pulso-rojo text-pulso-rojo hover:bg-pulso-rojo hover:text-white',
+    danger: 'bg-red-600 hover:bg-red-700 text-white',
   };
 
   const sizes = {
