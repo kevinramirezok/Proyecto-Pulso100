@@ -72,7 +72,7 @@ export default function EntrenamientoActivo({ workout, scheduledWorkoutId, onCom
       const workoutId = workout.workout_id || workout.workout?.id || workout.id;
       
       if (!workoutId) {
-        console.error('❌ Workout sin ID:', workout);
+        console.error('Workout sin ID válido:', workout);
         toast.error('Error: Workout inválido');
         setCompletando(false);
         return;
@@ -108,9 +108,7 @@ export default function EntrenamientoActivo({ workout, scheduledWorkoutId, onCom
       }
 
       // 3. Verificar y desbloquear medallas
-      console.log('🏅 Verificando medallas para usuario:', user.id);
       const newMedals = await checkAndUnlockMedals(user.id);
-      console.log('🏅 Medallas desbloqueadas:', newMedals);
       
       if (newMedals && newMedals.length > 0) {
         newMedals.forEach(medal => {

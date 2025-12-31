@@ -11,10 +11,43 @@ export const WorkoutProvider = ({ children }) => {
 
   // Cargar datos al iniciar
   useEffect(() => {
+    let isMounted = true;
+    
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const [workoutsData, exercisesData] = await Promise.all([
+          getWorkouts(),
+          getExercises()
+        ]);
+        
+        if (isMounted) {
+          setWorkouts(workoutsData);
+          setExercises(exercisesData);
+        }
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        if (isMounted) {
+          setError('Error al cargar los datos');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
     loadData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const loadData = async () => {
+  // Recargar datos (útil después de crear/editar)
+  const refreshData = async () => {
     setLoading(true);
     setError(null);
     
@@ -32,11 +65,6 @@ export const WorkoutProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Recargar datos (útil después de crear/editar)
-  const refreshData = async () => {
-    await loadData();
   };
 
   return (
